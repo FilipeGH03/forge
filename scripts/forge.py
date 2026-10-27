@@ -284,11 +284,15 @@ def commits_da_frente(plano, f):
 
 def commits_por_tarefa(plano):
     """{tid: [commits]} e {frente: lista de commits ou None se a branch não existe}."""
-    por_tarefa, por_frente = {}, {}
+    por_tarefa, por_frente, vistos = {}, {}, set()
     for f in plano["frentes"]:
         commits = commits_da_frente(plano, f)
         por_frente[f["id"]] = commits
         for c in commits or []:
+            # frentes no mesmo repositório leem o mesmo git log: cada commit conta uma vez só
+            if c["sha"] in vistos:
+                continue
+            vistos.add(c["sha"])
             for tid in c["ids"]:
                 por_tarefa.setdefault(tid, []).append(c)
     return por_tarefa, por_frente
@@ -529,6 +533,7 @@ def achar_drift(caminho, plano):
     achados = []
     por_tarefa, por_frente = commits_por_tarefa(plano)
     ids = {t["id"]: t for t in plano["tarefas"]}
+    vistos = set()
 
     for f in plano["frentes"]:
         commits = por_frente[f["id"]]
@@ -542,6 +547,9 @@ def achar_drift(caminho, plano):
                 achados.append(("branch", f"frente {f['id']}: branch {branch} não existe em {f['repo']}"))
             continue
         for c in commits:
+            if c["sha"] in vistos:
+                continue
+            vistos.add(c["sha"])
             if not c["ids"]:
                 achados.append(("sem-tarefa", f"{f['id']} {c['sha'][:8]} sem ID de tarefa: {c['assunto']}"))
             for tid in c["ids"]:
