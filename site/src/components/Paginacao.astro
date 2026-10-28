@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { comBase } from '../lib/navegacao';
+
+interface Props {
+  /** A página de antes, na ordem da navegação (secao e ordem). */
+  anterior?: CollectionEntry<'docs'>;
+  /** A página de depois. */
+  seguinte?: CollectionEntry<'docs'>;
+}
+
+const { anterior, seguinte } = Astro.props;
+---
+
+{
+  (anterior || seguinte) && (
+    <nav class="paginacao" aria-label="Páginas vizinhas">
+      {anterior && (
+        <a class="paginacao-anterior" href={comBase(`/docs/${anterior.id}/`)} rel="prev">
+          <span class="paginacao-rotulo">← Anterior</span>
+          <span class="paginacao-titulo">{anterior.data.titulo}</span>
+        </a>
+      )}
+      {seguinte && (
+        <a class="paginacao-seguinte" href={comBase(`/docs/${seguinte.id}/`)} rel="next">
+          <span class="paginacao-rotulo">Seguinte →</span>
+          <span class="paginacao-titulo">{seguinte.data.titulo}</span>
+        </a>
+      )}
+    </nav>
+  )
+}

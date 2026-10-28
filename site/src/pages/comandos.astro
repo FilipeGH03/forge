@@ -1,0 +1,110 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Base from '../layouts/Base.astro';
+import dados from '../data/comandos.json';
+import { LINHAS_SAIDA_CURTA, contarLinhas, frase, marcasDoArgumento, metaDoArgumento, montarUso } from '../lib/comandos.mjs';
+
+// Gerado por `npm run dados` (scripts/extrair.py, contrato 1.2): todo subcomando do forge.py, na ordem do argparse.
+const comandos = dados.comandos;
+
+const INDICE = 'indice-de-comandos';
+const titulos: MarkdownHeading[] = [
+  { depth: 2, slug: INDICE, text: 'Todos os comandos' },
+  ...comandos.map((c) => ({ depth: 2, slug: c.nome, text: c.nome })),
+];
+---
+
+<Base
+  titulo="Comandos"
+  descricao="Todos os subcomandos do forge.py: para que servem, os argumentos e um exemplo com a saída real de cada um."
+  atual="comandos"
+  titulos={titulos}
+>
+  <p>
+    O <code>forge.py</code> tem {comandos.length} subcomandos. Quem os roda no dia a dia é a sessão do Claude Code; esta página é para
+    saber o que cada um faz e o que pedir. O script fica em <code>~/.claude/skills/forge/scripts/forge.py</code> e se chama com o{' '}
+    <code>python</code>.
+  </p>
+  <p>
+    Na linha de uso, <code>&lt;plano&gt;</code> é o caminho do JSON do plano, o texto entre colchetes é opcional e os três pontos
+    pedem um ou mais valores. Nos exemplos o plano é o <code>forge-exemplo.json</code>, e as saídas são de uma execução real.
+  </p>
+
+  <h2 id={INDICE}>
+    Todos os comandos<a class="ancora" href={`#${INDICE}`} aria-label="Link direto para a seção Todos os comandos"></a>
+  </h2>
+  <ul class="indice-comandos">
+    {
+      comandos.map((c) => (
+        <li>
+          <a class="indice-nome" href={`#${c.nome}`}>{c.nome}</a>
+          <span class="indice-ajuda">{frase(c.ajuda)}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    comandos.map((c) => (
+      <section class="comando" aria-labelledby={c.nome}>
+        <h2 id={c.nome}>
+          <code>{c.nome}</code>
+          <a class="ancora" href={`#${c.nome}`} aria-label={`Link direto para o comando ${c.nome}`}></a>
+        </h2>
+        <p class="comando-ajuda">{frase(c.ajuda)}</p>
+
+        <h3>Uso</h3>
+        <pre class="astro-code" data-language="bash" tabindex="0"><code>{montarUso(c)}</code></pre>
+
+        <h3>Argumentos</h3>
+        {c.argumentos.length === 0 ? (
+          <p class="args-vazio">{c.usa_plano ? 'Só o caminho do plano.' : 'Nenhum.'}</p>
+        ) : (
+          <>
+            {c.usa_plano && <p class="args-vazio">Além do caminho do plano, que vai primeiro:</p>}
+            <ul class="args">
+              {c.argumentos.map((a) => (
+                <li class="arg">
+                  <div class="arg-cabeca">
+                    <code class="arg-nome">{a.nome}</code>
+                    <span class="arg-marcas">{marcasDoArgumento(a).join(' · ')}</span>
+                  </div>
+                  <div class="arg-texto">
+                    {a.ajuda && <p class="arg-ajuda">{frase(a.ajuda)}</p>}
+                    {metaDoArgumento(a).map((m) => (
+                      <p class="arg-meta">
+                        {m.rotulo}:{' '}
+                        {m.valores.map((v) => (
+                          <>
+                            <code>{v}</code>{' '}
+                          </>
+                        ))}
+                      </p>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {c.exemplo && (
+          <>
+            <h3>Exemplo</h3>
+            <div class="exemplo">
+              <pre class="astro-code" data-language="bash" tabindex="0"><code>{c.exemplo.comando}</code></pre>
+              {contarLinhas(c.exemplo.saida) > LINHAS_SAIDA_CURTA ? (
+                <details class="saida">
+                  <summary>Ver a saída ({contarLinhas(c.exemplo.saida)} linhas)</summary>
+                  <pre class="astro-code" data-language="text" tabindex="0"><code>{c.exemplo.saida}</code></pre>
+                </details>
+              ) : (
+                <pre class="astro-code" data-language="text" tabindex="0"><code>{c.exemplo.saida}</code></pre>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+    ))
+  }
+</Base>

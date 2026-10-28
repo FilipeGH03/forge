@@ -51,6 +51,8 @@ python "<skill>/scripts/forge.py" <comando> <plano.json> ...
 
 ## Fase 0 — Descobrir onde está
 
+*Antes de tudo, o forge confere se já existe um plano em andamento: se existe, retoma de onde ele parou, conferindo o plano contra o código; se não, começa um projeto novo.*
+
 Rode `forge lista`. Se o hook de SessionStart já trouxe o estado de um plano, ou o usuário nomeou
 um, é **retomada**: rode `status` e `drift`, mostre em poucas linhas onde o trabalho parou, e siga
 pela fase em que o plano está. Divergência no `drift` se resolve **antes** de qualquer onda: o
@@ -59,6 +61,8 @@ repositório tem razão — corrija o plano (`marcar`, `decisao`, edição do JS
 Senão, é projeto novo: siga a fase 1.
 
 ## Fase 1 — Requisitos
+
+*Entender o que precisa existir no fim, para quem e o que fica de fora, com poucas perguntas de uma vez, e abrir o plano de trabalho com esses requisitos e a origem de cada um.*
 
 1. Pergunte o mínimo para entender o objetivo, **em lote** (AskUserQuestion, até 4 perguntas por
    vez): o que precisa existir no fim, para quem, o que fica de fora, quais repositórios, se há prazo
@@ -69,6 +73,8 @@ Senão, é projeto novo: siga a fase 1.
 
 ## Fase 2 — Levantamento
 
+*Ler o código antes de propor qualquer coisa e anotar no plano os fatos que alguém precisaria redescobrir: onde a mudança encaixa, o que já existe e como compilar e testar cada repositório.*
+
 Leia o código antes de propor qualquer coisa. Para vários repositórios, use subagentes `Explore` em
 paralelo, um por repositório, pedindo **fatos com arquivo e linha** — não opinião. Registre em
 `apurado` (uma entrada por área) o que alguém precisaria redescobrir: onde a mudança encaixa, os
@@ -77,6 +83,8 @@ cada repositório nesta máquina — testado agora, não suposto** (a lição de
 frentes trabalharam uma noite inteira com uma restrição que já não existia).
 
 ## Fase 3 — Proposta: frentes, contratos e tarefas
+
+*Dividir o trabalho em frentes que andam em paralelo sem se atrapalhar, fechar por escrito tudo o que passa de uma frente para outra (os contratos) e quebrar cada frente em tarefas pequenas que se testam sozinhas.*
 
 **Frentes.** Uma frente é um repositório (ou uma área de um repositório que nunca encosta nos
 arquivos de outra). Critérios: dá para andar em paralelo sem um pisar no outro; tem um jeito próprio
@@ -104,6 +112,8 @@ Cadastre com os comandos (ou editando o JSON, ver `references/plano-json.md`) e 
 
 ## Fase 4 — Aprovação (parada obrigatória)
 
+*O fluxo para aqui até o dono do projeto aprovar o plano: nenhum agente é lançado e nenhuma linha de código é escrita antes do sim explícito dele.*
+
 1. `forge fase <plano> aguardando-aprovacao`.
 2. Apresente o `forge-<slug>.md`: link para o arquivo, e no chat um resumo de **frentes, contratos,
    número de tarefas por frente, primeira onda e dúvidas em aberto**.
@@ -113,6 +123,8 @@ Cadastre com os comandos (ou editando o JSON, ver `references/plano-json.md`) e 
    `agentes.push`; padrão é só commit local) e se quer os `FORGE.md` nos repositórios (`ponteiros`).
 
 ## Fase 5 — Execução em ondas
+
+*O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código, dois revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.*
 
 1. `forge drift` limpo e `forge branches` conferido (árvore suja num repositório da onda: pergunte
    antes de seguir).
@@ -132,6 +144,8 @@ ferramenta Agent na sessão, com os briefings de `forge briefing`, sem Workflow.
 
 ## Fase 6 — Integração (só a sessão principal)
 
+*Só a sessão principal confere o que cada agente devolveu, marca no plano o que ficou pronto e leva ao dono o que voltou com problema, sobretudo contrato que não fecha, que nunca é adaptado em silêncio.*
+
 Para cada tarefa que voltou:
 
 - `pronto` → confira os commits no repositório (`git show`) e rode `forge marcar <ID>`.
@@ -147,6 +161,8 @@ os testes cobriram, o que mudou de comportamento, furos em aberto, "SQL a olhar"
 fica com o dono, `--licao` para o que a onda ensinou sobre os agentes.
 
 ## Decisões no meio do projeto
+
+*Depois da aprovação, toda mudança de escopo, desenho ou contrato vira uma decisão registrada no plano, com o impacto dito antes, para que a fonte da verdade continue sendo o plano e não a conversa.*
 
 Vale em qualquer fase depois da aprovação: o plano é a fonte da verdade, não a conversa. **Toda
 resposta ou pedido do usuário que muda escopo, desenho, contrato ou comportamento vira decisão na
@@ -176,6 +192,8 @@ contrato, generalização proposta pelo revisor de padrões, defeito que muda a 
    foi marcada ✔ sem commit novo.
 
 ## Fase 7 — Documento e código sincronizados
+
+*Ao fim de cada onda, o plano e o código precisam contar a mesma história: o forge aponta cada divergência, como commit sem tarefa ou tarefa sem commit, e cada uma é resolvida, não ignorada.*
 
 Ao fim de cada onda e antes de encerrar a sessão:
 

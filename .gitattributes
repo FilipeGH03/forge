@@ -1,0 +1,12 @@
+# Texto sempre com LF, para os arquivos gerados não mudarem entre o Windows e o runner do Actions.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary

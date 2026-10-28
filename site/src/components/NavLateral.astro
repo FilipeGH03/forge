@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import { navegacao } from '../lib/navegacao';
+
+interface Props {
+  /** O slug da página aberta, para marcá-la na lista. */
+  atual?: string;
+}
+
+const { atual } = Astro.props;
+const grupos = navegacao(await getCollection('docs'), atual);
+const tituloAtual = grupos.flatMap((g) => g.itens).find((item) => item.ehAtual)?.titulo;
+---
+
+<details class="menu" open>
+  <summary>
+    <span class="menu-rotulo">Páginas</span>
+    {tituloAtual && <span class="menu-atual">{tituloAtual}</span>}
+  </summary>
+  <nav aria-label="Documentação">
+    <ul class="menu-grupos">
+      {
+        grupos.map((grupo) => (
+          <li>
+            <span class="menu-grupo" id={`menu-${grupo.secao}`}>
+              {grupo.rotulo}
+            </span>
+            <ul aria-labelledby={`menu-${grupo.secao}`}>
+              {grupo.itens.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={item.ehAtual ? 'page' : undefined}>
+                    {item.titulo}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</details>
+<script is:inline>fixarAberto(document.currentScript.previousElementSibling, '(min-width: 64rem)');</script>

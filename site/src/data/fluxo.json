@@ -1,0 +1,126 @@
+{
+  "fases": [
+    {
+      "id": "fase-0",
+      "n": 0,
+      "titulo": "Descobrir onde está",
+      "resumo": "Antes de tudo, o forge confere se já existe um plano em andamento: se existe, retoma de onde ele parou, conferindo o plano contra o código; se não, começa um projeto novo.",
+      "parada": false
+    },
+    {
+      "id": "fase-1",
+      "n": 1,
+      "titulo": "Requisitos",
+      "resumo": "Entender o que precisa existir no fim, para quem e o que fica de fora, com poucas perguntas de uma vez, e abrir o plano de trabalho com esses requisitos e a origem de cada um.",
+      "parada": false
+    },
+    {
+      "id": "fase-2",
+      "n": 2,
+      "titulo": "Levantamento",
+      "resumo": "Ler o código antes de propor qualquer coisa e anotar no plano os fatos que alguém precisaria redescobrir: onde a mudança encaixa, o que já existe e como compilar e testar cada repositório.",
+      "parada": false
+    },
+    {
+      "id": "fase-3",
+      "n": 3,
+      "titulo": "Proposta: frentes, contratos e tarefas",
+      "resumo": "Dividir o trabalho em frentes que andam em paralelo sem se atrapalhar, fechar por escrito tudo o que passa de uma frente para outra (os contratos) e quebrar cada frente em tarefas pequenas que se testam sozinhas.",
+      "parada": false
+    },
+    {
+      "id": "fase-4",
+      "n": 4,
+      "titulo": "Aprovação (parada obrigatória)",
+      "resumo": "O fluxo para aqui até o dono do projeto aprovar o plano: nenhum agente é lançado e nenhuma linha de código é escrita antes do sim explícito dele.",
+      "parada": true
+    },
+    {
+      "id": "fase-5",
+      "n": 5,
+      "titulo": "Execução em ondas",
+      "resumo": "O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código, dois revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.",
+      "parada": false
+    },
+    {
+      "id": "fase-6",
+      "n": 6,
+      "titulo": "Integração (só a sessão principal)",
+      "resumo": "Só a sessão principal confere o que cada agente devolveu, marca no plano o que ficou pronto e leva ao dono o que voltou com problema, sobretudo contrato que não fecha, que nunca é adaptado em silêncio.",
+      "parada": false
+    },
+    {
+      "id": "fase-7",
+      "n": 7,
+      "titulo": "Documento e código sincronizados",
+      "resumo": "Ao fim de cada onda, o plano e o código precisam contar a mesma história: o forge aponta cada divergência, como commit sem tarefa ou tarefa sem commit, e cada uma é resolvida, não ignorada.",
+      "parada": false
+    }
+  ],
+  "transversais": [
+    {
+      "id": "decisoes",
+      "titulo": "Decisões no meio do projeto",
+      "resumo": "Depois da aprovação, toda mudança de escopo, desenho ou contrato vira uma decisão registrada no plano, com o impacto dito antes, para que a fonte da verdade continue sendo o plano e não a conversa."
+    }
+  ],
+  "onda": {
+    "papeis": [
+      {
+        "id": "executor",
+        "nome": "Executor",
+        "faz": "Faz a tarefa, testa e commita com o ID na mensagem.",
+        "escreve_codigo": "sim"
+      },
+      {
+        "id": "revisor-contrato",
+        "nome": "Revisor de contrato",
+        "faz": "Adversarial: procura onde a mudança contraria uma decisão, quebra um contrato ou outra frente.",
+        "escreve_codigo": "não"
+      },
+      {
+        "id": "revisor-padroes",
+        "nome": "Revisor de padrões",
+        "faz": "Padrões do repositório (CLAUDE.md, README, lint, skills de padrões da stack) e simplicidade; sempre procura uma forma mais simples, reutilizável ou genérica de fazer o mesmo.",
+        "escreve_codigo": "não"
+      },
+      {
+        "id": "testador",
+        "nome": "Testador",
+        "faz": "Independente: confere o como testar, escreve o teste que falta e roda. Não corrige código de produção.",
+        "escreve_codigo": "só testes"
+      }
+    ],
+    "etapas": [
+      {
+        "papeis": [
+          "executor"
+        ],
+        "condicional": false,
+        "rotulo": null
+      },
+      {
+        "papeis": [
+          "revisor-contrato",
+          "revisor-padroes"
+        ],
+        "condicional": false,
+        "rotulo": "em paralelo"
+      },
+      {
+        "papeis": [
+          "executor"
+        ],
+        "condicional": true,
+        "rotulo": "correção, se houver bloqueante"
+      },
+      {
+        "papeis": [
+          "testador"
+        ],
+        "condicional": false,
+        "rotulo": null
+      }
+    ]
+  }
+}

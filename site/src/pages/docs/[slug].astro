@@ -1,0 +1,18 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { vizinhas } from '../../lib/navegacao';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((doc) => ({ params: { slug: doc.id }, props: { doc } }));
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
+const { anterior, seguinte } = vizinhas(await getCollection('docs'), doc.id);
+---
+
+<Base titulo={doc.data.titulo} descricao={doc.data.descricao} atual={doc.id} titulos={headings} anterior={anterior} seguinte={seguinte}>
+  <Content />
+</Base>

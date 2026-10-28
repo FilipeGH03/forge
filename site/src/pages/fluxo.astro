@@ -1,0 +1,87 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Base from '../layouts/Base.astro';
+import DiagramaFluxo from '../components/DiagramaFluxo.astro';
+import fluxo from '../data/fluxo.json';
+import { subDoPapel } from '../lib/diagrama.mjs';
+import { comBase } from '../lib/navegacao';
+
+// Gerado por `npm run dados` (scripts/extrair.py, contrato 1.3): fases e transversais do SKILL.md,
+// papéis e etapas da onda do forge.py.
+const { fases, transversais, onda } = fluxo;
+
+const FASES = 'fases-do-projeto';
+const ONDA = 'onda-de-cada-tarefa';
+const titulos: MarkdownHeading[] = [
+  { depth: 2, slug: FASES, text: 'Fases do projeto' },
+  { depth: 2, slug: ONDA, text: 'A onda de cada tarefa' },
+];
+---
+
+<Base
+  titulo="Diagrama do fluxo"
+  descricao="As fases de um projeto no forge, do requisito ao código sincronizado, e a onda de agentes que executa cada tarefa."
+  atual="fluxo"
+  titulos={titulos}
+>
+  <p>
+    Um projeto no forge anda em {fases.length} fases, da {fases[0].n} à {fases.at(-1)?.n}. A única parada obrigatória é a aprovação
+    do plano: antes dela nenhum agente roda. Depois dela, o trabalho acontece em ondas, e cada tarefa passa por um executor, dois
+    revisores e um testador.
+  </p>
+
+  <h2 id={FASES}>
+    Fases do projeto<a class="ancora" href={`#${FASES}`} aria-label="Link direto para a seção Fases do projeto"></a>
+  </h2>
+  <DiagramaFluxo id="fluxo-fases" partes={['fases', 'transversais']} legendas={false} />
+  <ul class="fluxo-lista" role="list">
+    {
+      fases.map((f) => (
+        <li>
+          <span class="fluxo-titulo">
+            Fase {f.n} · {f.titulo}
+          </span>
+          {f.parada && <span class="fluxo-marca">Parada obrigatória. </span>}
+          {f.resumo}
+        </li>
+      ))
+    }
+    {
+      transversais.map((t) => (
+        <li>
+          <span class="fluxo-titulo">{t.titulo}</span>
+          <span class="fluxo-marca">Vale para o projeto todo. </span>
+          {t.resumo}
+        </li>
+      ))
+    }
+  </ul>
+  <p>
+    Cada fase tem seu texto nas páginas de <a href={comBase('/docs/tarefas-e-ondas/')}>tarefas e ondas</a>,{' '}
+    <a href={comBase('/docs/decisoes-no-meio-do-projeto/')}>decisões no meio do projeto</a> e{' '}
+    <a href={comBase('/docs/sincronizacao-e-drift/')}>sincronização e drift</a>.
+  </p>
+
+  <h2 id={ONDA}>
+    A onda de cada tarefa<a class="ancora" href={`#${ONDA}`} aria-label="Link direto para a seção A onda de cada tarefa"></a>
+  </h2>
+  <p>
+    Cada tarefa da onda passa por {onda.etapas.length} etapas. Os dois revisores olham em paralelo, e o executor só volta se um
+    deles achar um bloqueante.
+  </p>
+  <DiagramaFluxo id="fluxo-onda" partes={['onda']} />
+  <ul class="fluxo-lista" role="list">
+    {
+      onda.papeis.map((p) => (
+        <li>
+          <span class="fluxo-titulo">{p.nome}</span>
+          <span class="fluxo-marca">{subDoPapel(p)}. </span>
+          {p.faz}
+        </li>
+      ))
+    }
+  </ul>
+  <p>
+    Os papéis em detalhe estão em <a href={comBase('/docs/papeis-dos-agentes/')}>papéis dos agentes</a>.
+  </p>
+</Base>

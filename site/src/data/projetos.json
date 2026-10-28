@@ -1,0 +1,13 @@
+{
+  "sobre": "Projetos conduzidos com o forge, na seção \"Feito com forge\" da página inicial (D16). Escrito à mão: para entrar, uma entrada nova no fim da lista. url e repositorio são opcionais (um dos dois, pelo menos); os números são do plano na data de atualizado.",
+  "projetos": [
+    {
+      "nome": "Site do forge",
+      "descricao": "Esta documentação: as páginas, a referência de comandos e o diagrama do fluxo, com os dados gerados dos arquivos da própria skill a cada build.",
+      "url": "/",
+      "repositorio": "https://github.com/FilipeGH03/forge",
+      "plano": { "frentes": 2, "tarefas": 11, "decisoes": 16 },
+      "atualizado": "2026-10-28"
+    }
+  ]
+}

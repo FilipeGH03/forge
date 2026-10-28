@@ -1,0 +1,253 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+import DiagramaFluxo from '../components/DiagramaFluxo.astro';
+import comandos from '../data/comandos.json';
+import fluxo from '../data/fluxo.json';
+import vitrine from '../data/projetos.json';
+import { comBase, navegacao } from '../lib/navegacao';
+
+// A página inicial (D14, D16): a vitrine do forge. O que dá para tirar dos arquivos da skill vem de lá:
+// a linha de instalação do início rápido, a saída real do `status` e os nomes dos comandos (comandos.json),
+// as fases e a onda (fluxo.json). Os projetos vêm do src/data/projetos.json, escrito à mão.
+const REPOSITORIO = 'https://github.com/FilipeGH03/forge';
+
+const inicioRapido = await getEntry('docs', 'inicio-rapido');
+// Sem o início rápido (ou sem o `git clone` nele), a linha de instalação simplesmente não aparece.
+const instalar = inicioRapido?.body?.match(/^git clone \S+ \S+$/m)?.[0];
+
+const status = comandos.comandos.find((c) => c.nome === 'status')?.exemplo;
+if (!status) {
+  throw new Error('Página inicial: o comandos.json não tem o exemplo do `status`.');
+}
+
+const { fases, onda } = fluxo;
+const parada = fases.find((f) => f.parada);
+const projetos = vitrine.projetos;
+const grupos = navegacao(await getCollection('docs'));
+
+const numero = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+const dataCurta = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+---
+
+<Base titulo="forge" descricao="O forge conduz projetos tocados por agentes do Claude Code com um plano vivo: frentes, contratos e ondas, conferidos contra o git." vitrine>
+  <section class="abertura">
+    <div class="abertura-miolo">
+      <Logo class="abertura-logo" />
+      <div class="abertura-texto">
+        <h1>
+          <span class="abertura-linha">O plano é a fonte da verdade.</span>
+          <span class="abertura-linha abertura-contra">O chat, não.</span>
+        </h1>
+        <p class="abertura-lide">
+          O forge é uma skill do Claude Code para projetos grandes demais para uma conversa: divide o trabalho em frentes, fecha os
+          contratos entre elas e executa em ondas de agentes, tudo a partir de um plano que se confere contra o git.
+        </p>
+        <div class="acoes">
+          <a class="botao botao-cheio" href={comBase('/docs/inicio-rapido/')}>Começar pelo início rápido</a>
+          <a class="botao botao-vazado" href={comBase('/docs/visao-geral/')}>Ler a visão geral</a>
+        </div>
+        {
+          instalar && (
+            <div class="instalar">
+              <pre tabindex="0" aria-label="Comando de instalação"><code><span class="instalar-prompt" aria-hidden="true">$ </span>{instalar}</code></pre>
+              <button class="copiar" type="button" data-copiar={instalar} hidden>Copiar</button>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="problema" aria-labelledby="problema-titulo">
+    <div class="problema-miolo">
+      <h2 id="problema-titulo">Projeto tocado por agentes se perde.</h2>
+      <ul class="falhas" role="list">
+        <li>
+          <strong>O chat vira a fonte.</strong>
+          O que foi combinado fica espalhado em mensagens. A próxima sessão não sabe, e o próximo agente também não.
+        </li>
+        <li>
+          <strong>Cada agente inventa o seu lado do contrato.</strong>
+          Duas frentes andam em paralelo, cada uma supondo um formato diferente para o que passa entre elas.
+        </li>
+        <li>
+          <strong>Plano e código se separam.</strong>
+          O documento diz uma coisa, os commits dizem outra, e ninguém percebe até a hora de juntar.
+        </li>
+      </ul>
+      <p class="resposta">
+        No forge, o plano é um JSON com frentes, contratos, tarefas e decisões. O Markdown que você lê é gerado dele, toda mudança de
+        rumo vira uma decisão registrada, e o <code>drift</code> confere o plano contra os commits de cada repositório.
+        <a href={comBase('/docs/plano-vivo/')}>Como funciona o plano vivo</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="prova" aria-labelledby="prova-titulo">
+    <div class="prova-miolo">
+      <div class="prova-texto">
+        <h2 id="prova-titulo">O estado do projeto, num comando.</h2>
+        <p>
+          Esta é a saída real do <code>status</code> de um plano de exemplo, gerada no build deste site. Ao abrir uma sessão do Claude
+          Code na pasta do projeto, o hook mostra o mesmo resumo antes da primeira mensagem.
+        </p>
+        <dl class="leitura">
+          <div>
+            <dt>Frentes e tarefas</dt>
+            <dd>Cada frente com o seu repositório e a sua branch; cada tarefa com o que a destrava.</dd>
+          </div>
+          <div>
+            <dt>Commits pelo ID</dt>
+            <dd>O forge acha o commit de cada tarefa pelo ID na mensagem e pergunta antes de marcar.</dd>
+          </div>
+          <div>
+            <dt>Drift</dt>
+            <dd>Quando plano e código discordam, o aviso aparece aqui, não na hora do merge.</dd>
+          </div>
+        </dl>
+      </div>
+      <figure class="terminal">
+        <pre tabindex="0"><code><span class="terminal-comando"><span aria-hidden="true">$ </span>{status.comando}</span>
+{status.saida}</code></pre>
+        <figcaption>Saída do <a href={comBase('/comandos/#status')}><code>status</code></a>, gerada a cada build.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="fluxo" aria-labelledby="fluxo-titulo">
+    <div class="fluxo-miolo">
+      <div class="fluxo-cabeca">
+        <h2 id="fluxo-titulo">Do requisito ao código, em {fases.length} fases.</h2>
+        <p>
+          {parada ? `A única parada obrigatória é a fase ${parada.n}, ${parada.titulo.toLowerCase()}: antes dela nenhum agente roda. ` : ''}
+          Depois, cada tarefa passa por uma onda de {onda.papeis.length} papéis: quem faz, dois revisores que olham em paralelo e quem
+          testa.
+        </p>
+        <a class="seguir" href={comBase('/fluxo/')}>O fluxo explicado, fase a fase</a>
+      </div>
+      <div class="fluxo-desenhos">
+        <DiagramaFluxo id="inicio-fases" partes={['fases', 'transversais']} legendas={false} />
+        <DiagramaFluxo id="inicio-onda" partes={['onda']} />
+      </div>
+    </div>
+  </section>
+
+  <section class="ferramentas" aria-labelledby="ferramentas-titulo">
+    <div class="ferramentas-miolo">
+      <h2 id="ferramentas-titulo">{comandos.comandos.length} comandos, um script.</h2>
+      <p>
+        No dia a dia quem os roda é a sessão do Claude Code, quando você chama <code>/forge</code>. Cada um tem a sua página, com os
+        argumentos e uma saída real.
+      </p>
+      <ul class="parede" role="list">
+        {
+          comandos.comandos.map((c) => (
+            <li>
+              <a href={comBase(`/comandos/#${c.nome}`)}>
+                <code>{c.nome}</code>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="feitos" aria-labelledby="feitos-titulo">
+    <div class="feitos-miolo">
+      <h2 id="feitos-titulo">Feito com forge</h2>
+      <ul class:list={['projetos', { 'projetos-um': projetos.length === 1 }]} role="list">
+        {
+          projetos.map((p) => (
+            <li class="projeto">
+              <h3 class="projeto-nome">{p.nome}</h3>
+              <p class="projeto-descricao">{p.descricao}</p>
+              <p class="projeto-plano">
+                {numero(p.plano.frentes, 'frente', 'frentes')} · {numero(p.plano.tarefas, 'tarefa', 'tarefas')} ·{' '}
+                {numero(p.plano.decisoes, 'decisão', 'decisões')}
+                <span class="projeto-data"> · plano em {dataCurta(p.atualizado)}</span>
+              </p>
+              <p class="projeto-links">
+                {p.url === '/' ? (
+                  <span>Você está nele.</span>
+                ) : (
+                  p.url && <a href={p.url.startsWith('/') ? comBase(p.url) : p.url}>Ver o site</a>
+                )}
+                {p.repositorio && <a href={p.repositorio}>Repositório</a>}
+              </p>
+            </li>
+          ))
+        }
+        <li class="projeto projeto-seu">
+          <h3 class="projeto-nome">O seu projeto aqui</h3>
+          <p class="projeto-descricao">
+            Levou um projeto do novo ao fechado com o forge? Abra uma issue com o link, uma frase sobre ele e os números do plano.
+          </p>
+          <p class="projeto-links">
+            <a href={`${REPOSITORIO}/issues/new`}>Abrir uma issue</a>
+          </p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="fechamento" aria-labelledby="fechamento-titulo">
+    <div class="fechamento-miolo">
+      <h2 id="fechamento-titulo">Comece pequeno, hoje.</h2>
+      <p>
+        Uma frente, duas tarefas, do primeiro comando ao plano fechado. O início rápido mostra cada passo com a saída real.
+      </p>
+      <div class="acoes">
+        <a class="botao botao-cheio" href={comBase('/docs/inicio-rapido/')}>Começar pelo início rápido</a>
+        <a class="botao botao-vazado" href={REPOSITORIO}>Ver o código no GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    // O botão de copiar só aparece quando há área de transferência (sem JS, o comando continua ali para selecionar).
+    for (const botao of document.querySelectorAll('[data-copiar]')) {
+      if (!navigator.clipboard) continue;
+      botao.hidden = false;
+      botao.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(botao.dataset.copiar);
+          botao.textContent = 'Copiado';
+        } catch {
+          botao.textContent = 'Não deu: selecione o texto';
+        }
+        setTimeout(() => (botao.textContent = 'Copiar'), 2000);
+      });
+    }
+  </script>
+
+  <footer class="rodape" slot="rodape">
+    <div class="rodape-miolo">
+      <a class="marca" href={comBase('/')}>
+        <Logo class="marca-logo" />forge
+      </a>
+      <nav aria-label="Documentação">
+        <ul class="mapa" role="list">
+          {
+            grupos.map((grupo) => (
+              <li>
+                <span class="mapa-grupo" id={`mapa-${grupo.secao}`}>
+                  {grupo.rotulo}
+                </span>
+                <ul aria-labelledby={`mapa-${grupo.secao}`} role="list">
+                  {grupo.itens.map((item) => (
+                    <li>
+                      <a href={item.href}>{item.titulo}</a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </footer>
+</Base>

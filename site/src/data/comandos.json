@@ -1,0 +1,644 @@
+{
+  "gerado_de": "scripts/forge.py",
+  "comandos": [
+    {
+      "nome": "novo",
+      "ajuda": "cria forge-<slug>.json e .md e registra o plano",
+      "usa_plano": false,
+      "argumentos": [
+        {
+          "nome": "slug",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--titulo",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--dono",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--dir",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": ".",
+          "ajuda": "pasta onde o plano mora (fora dos repositórios)",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--branch",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "branch de trabalho em todos os repositórios (padrão: o slug)",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--base",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": "teste",
+          "ajuda": "branch de onde as branches saem (padrão: teste)",
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py novo exemplo --titulo Exemplo --dono voce@exemplo.com --dir . --base main",
+        "saida": "forge-exemplo.json"
+      }
+    },
+    {
+      "nome": "registrar",
+      "ajuda": "registra um plano existente para os hooks o acharem",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py registrar forge-exemplo.json",
+        "saida": "registrado: forge-exemplo.json"
+      }
+    },
+    {
+      "nome": "lista",
+      "ajuda": "lista os planos registrados",
+      "usa_plano": false,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py lista",
+        "saida": "aprovado               0/2  forge-exemplo.json"
+      }
+    },
+    {
+      "nome": "md",
+      "ajuda": "valida o JSON e regenera o Markdown (rode depois de editar o JSON à mão)",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py md forge-exemplo.json",
+        "saida": "gerado: forge-exemplo.md"
+      }
+    },
+    {
+      "nome": "validar",
+      "ajuda": "valida o JSON sem gravar nada",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py validar forge-exemplo.json",
+        "saida": "ok"
+      }
+    },
+    {
+      "nome": "status",
+      "ajuda": "estado das tarefas, com os commits de cada uma",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--sem-git",
+          "obrigatorio": false,
+          "recebe_valor": false,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--json",
+          "obrigatorio": false,
+          "recebe_valor": false,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py status forge-exemplo.json",
+        "saida": "forge-exemplo.json — Exemplo · fase aprovado · atualizado 2026-01-15\nTarefas: 0/2 ✔\n  A · API — 0/2  [<pasta>/repo @ exemplo]\n    ☐ A1 Rota GET /saude — desbloqueada · já tem commit (e8cbdbec) — marcar?\n    ☐ A2 Teste da rota /saude — espera A1\nPróximas: A1\nDrift: 1 divergência(s) — rode `drift` para ver"
+      }
+    },
+    {
+      "nome": "drift",
+      "ajuda": "divergências entre o plano e os repositórios (sai com 1 se houver)",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py drift forge-exemplo.json",
+        "saida": "[commit-sem-feito] A1 tem commit (e8cbdbec) mas está ☐ — rode `marcar A1`\n1 divergência(s)"
+      }
+    },
+    {
+      "nome": "marcar",
+      "ajuda": "marca a tarefa como feita (acha os commits pelo ID), pendente ou a revisar",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "id",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--commit",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": true
+        },
+        {
+          "nome": "--forcar",
+          "obrigatorio": false,
+          "recebe_valor": false,
+          "padrao": null,
+          "ajuda": "marca feita mesmo sem commit",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--pendente",
+          "obrigatorio": false,
+          "recebe_valor": false,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--revisar",
+          "obrigatorio": false,
+          "recebe_valor": false,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py marcar forge-exemplo.json A1",
+        "saida": "✔ A1 Rota GET /saude"
+      }
+    },
+    {
+      "nome": "tarefa",
+      "ajuda": "acrescenta uma tarefa à frente, com o próximo ID",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--frente",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--titulo",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--testar",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "como provar que a tarefa funciona sozinha",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--depende",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": true
+        },
+        {
+          "nome": "--notas",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--complexidade",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": "media",
+          "ajuda": "escolhe o modelo e o esforço dos agentes da tarefa (padrão: media)",
+          "valores": [
+            "baixa",
+            "media",
+            "alta"
+          ],
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py tarefa forge-exemplo.json --frente A --titulo \"Rota GET /saude\" --testar \"GET /saude devolve 200\"",
+        "saida": "A1"
+      }
+    },
+    {
+      "nome": "complexidade",
+      "ajuda": "reclassifica a complexidade de uma ou mais tarefas",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "nivel",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": [
+            "baixa",
+            "media",
+            "alta"
+          ],
+          "multiplo": false
+        },
+        {
+          "nome": "ids",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": true
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py complexidade forge-exemplo.json baixa A2",
+        "saida": "A2: baixa"
+      }
+    },
+    {
+      "nome": "decisao",
+      "ajuda": "registra a próxima decisão (D<n>)",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--assunto",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--texto",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--afeta",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "tarefas que esta decisão obriga a revisar (as feitas voltam como ⟳)",
+          "valores": null,
+          "multiplo": true
+        },
+        {
+          "nome": "--contrato",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "contratos que esta decisão altera",
+          "valores": null,
+          "multiplo": true
+        },
+        {
+          "nome": "--revoga",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "decisão que esta substitui",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--duvida",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "dúvida que esta decisão responde",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--data",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py decisao forge-exemplo.json --assunto Autenticação --texto \"/saude é pública.\" --duvida Q1",
+        "saida": "D1"
+      }
+    },
+    {
+      "nome": "duvida",
+      "ajuda": "registra uma dúvida em aberto (Q<n>)",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "texto",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py duvida forge-exemplo.json \"A rota /saude precisa de autenticação?\"",
+        "saida": "Q1"
+      }
+    },
+    {
+      "nome": "responder",
+      "ajuda": "responde uma dúvida",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "id",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "resposta",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py responder forge-exemplo.json Q1 \"Não: é usada pelo balanceador, sem login.\"",
+        "saida": "Q1 respondida — se mudou algo, registre a decisão com `decisao --duvida Q1`"
+      }
+    },
+    {
+      "nome": "rodada",
+      "ajuda": "registra o fechamento de uma rodada",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--titulo",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--registro",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--arquivo",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--dono",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "pendências que ficam com o dono",
+          "valores": null,
+          "multiplo": true
+        },
+        {
+          "nome": "--licao",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "lições sobre os agentes",
+          "valores": null,
+          "multiplo": true
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py rodada forge-exemplo.json --titulo \"Primeira onda\" --registro \"A1 feita e testada.\"",
+        "saida": "rodada 1 registrada"
+      }
+    },
+    {
+      "nome": "dono",
+      "ajuda": "lista, acrescenta ou fecha pendências do dono",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--add",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--feito",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py dono forge-exemplo.json --add \"Publicar a rota em produção\"",
+        "saida": "1. [ ] Publicar a rota em produção"
+      }
+    },
+    {
+      "nome": "fase",
+      "ajuda": "muda a fase do plano",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "fase",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": [
+            "requisitos",
+            "aguardando-aprovacao",
+            "aprovado",
+            "em-execucao",
+            "fechado"
+          ],
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py fase forge-exemplo.json aprovado",
+        "saida": "fase: aprovado"
+      }
+    },
+    {
+      "nome": "briefing",
+      "ajuda": "mostra o briefing de um papel para uma tarefa",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "id",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--papel",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": "executor",
+          "ajuda": null,
+          "valores": [
+            "executor",
+            "revisor-contrato",
+            "revisor-padroes",
+            "testador"
+          ],
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py briefing forge-exemplo.json A2 --papel testador",
+        "saida": "# Testador da tarefa A2 — Exemplo\n\nVocê é o **testador**. Independente do executor: não confie no relatório dele, confira. Você pode\n**escrever e commitar testes**, mas **não corrige código de produção** — defeito achado é reportado.\n\n## Onde\n\n- Repositório `<pasta>/repo`, branch `exemplo` — frente **A · API**.\n- O resultado do executor (e da correção, se houve) vem logo abaixo deste briefing.\n\n**A2 — Teste da rota /saude**\n\n- Como provar que funciona: **o teste roda e passa**\n- Teste da frente: python -m unittest\n\n## Contratos que envolvem esta frente\n\n*(nenhum contrato envolve esta frente)*\n\n## O que fazer\n\n1. Rode os testes que o executor diz ter rodado. Passaram de verdade?\n2. Monte os casos a partir do \"como provar\" e do contrato: o caminho feliz, os limites (vazio, nulo,\n   tamanho máximo, fora do domínio), o erro esperado e o que **não** pode acontecer.\n3. Para cada caso sem teste automatizado, escreva o teste no padrão do repositório e rode.\n4. Commit dos testes com a mensagem **começando por `A2: `** (ex.: `A2: testes de borda`).\n   **Não faça push** — só commit local.\n5. O que não dá para testar aqui (precisa de banco, servidor, tela no navegador, aparelho) vira caso\n   com `resultado: \"nao-executado\"` e o roteiro para o dono executar.\n\n## O que conta como defeito\n\nSó reprove (`aprovado: false`, caso `falhou`, teste commitado falhando) um defeito que acontece com\na **entrada real do projeto**: os arquivos, dados e usos que existem hoje, ou que a tarefa e o\ncontrato dizem que vão existir. Caso de borda **hipotético** — formato que nenhuma fonte real tem,\nentrada que ninguém produz — vai em `notas` como observação, sem teste falhando e sem reprovar.\nNa dúvida, pergunte-se: \"isso quebra alguma coisa que o projeto faz ou vai fazer?\" Se não, é nota.\n\n## Restrições\n\n*(nenhuma além das regras)*\n\n- **Nunca** conecte em banco nem rode SQL, exceto banco local `torge_*`. Não ligue flag de teste que\n  sobe schema. Suíte que encosta em banco: rode por classe.\n\n## O que devolver\n\n`aprovado` (false se algum caso executado falhou), `casos` (cada um com `caso`, `como` e `resultado`:\n`passou`, `falhou` ou `nao-executado`), `commits` dos testes e `notas` (o defeito, com o passo a passo\npara reproduzir, quando houver). Os casos servem de base para o comentário de QA (`registrar-teste`)."
+      }
+    },
+    {
+      "nome": "onda",
+      "ajuda": "escolhe a próxima onda, grava os briefings e imprime o args do workflow",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "--max",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": 3,
+          "ajuda": "máximo de tarefas na onda (padrão 3)",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "--saida",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py onda forge-exemplo.json --max 1",
+        "saida": "{\n  \"plano\": \"forge-exemplo.json\",\n  \"filas\": [\n    {\n      \"id\": \"A\",\n      \"repo\": \"<pasta>/repo\",\n      \"tarefas\": [\n        {\n          \"id\": \"A2\",\n          \"titulo\": \"Teste da rota /saude\",\n          \"complexidade\": \"baixa\",\n          \"briefings\": {\n            \"executor\": \"<pasta>/forge-exemplo.briefings/A2-executor.md\",\n            \"revisor_contrato\": \"<pasta>/forge-exemplo.briefings/A2-revisor-contrato.md\",\n            \"revisor_padroes\": \"<pasta>/forge-exemplo.briefings/A2-revisor-padroes.md\",\n            \"testador\": \"<pasta>/forge-exemplo.briefings/A2-testador.md\"\n          },\n          \"modelos\": {\n            \"executor\": {\n              \"model\": \"sonnet\",\n              \"effort\": \"medium\"\n            },\n            \"revisor_contrato\": {\n              \"model\": \"sonnet\",\n              \"effort\": \"low\"\n            },\n            \"revisor_padroes\": {\n              \"model\": \"haiku\",\n              \"effort\": \"medium\"\n            },\n            \"testador\": {\n              \"model\": \"haiku\",\n              \"effort\": \"medium\"\n            }\n          }\n        }\n      ]\n    }\n  ],\n  \"fora\": []\n}"
+      }
+    },
+    {
+      "nome": "branches",
+      "ajuda": "situação da branch de trabalho em cada repositório",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py branches forge-exemplo.json",
+        "saida": "A  <pasta>/repo @ exemplo: 1 à frente, 0 atrás de main · só local · atual: exemplo · 0 arquivo(s) alterado(s)"
+      }
+    },
+    {
+      "nome": "ponteiros",
+      "ajuda": "escreve um FORGE.md em cada repositório apontando para o plano",
+      "usa_plano": true,
+      "argumentos": [],
+      "exemplo": {
+        "comando": "forge.py ponteiros forge-exemplo.json",
+        "saida": "escrito: <pasta>/repo/FORGE.md"
+      }
+    },
+    {
+      "nome": "contexto",
+      "ajuda": "resumo dos planos que interessam a uma pasta",
+      "usa_plano": false,
+      "argumentos": [
+        {
+          "nome": "--cwd",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": false
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py contexto --cwd <pasta>/repo",
+        "saida": "forge-exemplo.json — Exemplo · fase aprovado · atualizado 2026-01-15\nTarefas: 1/2 ✔\n  A · API — 1/2  [<pasta>/repo @ exemplo]\n    ✔ A1 Rota GET /saude — e8cbdbec\n    ☐ A2 Teste da rota /saude — desbloqueada\nPendências do dono: 1\nPróximas: A2"
+      }
+    }
+  ]
+}

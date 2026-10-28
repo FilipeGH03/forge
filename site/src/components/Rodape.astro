@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import Logo from './Logo.astro';
+import { comBase, navegacao } from '../lib/navegacao';
+
+// O rodapé de ferro com a marca e o mapa da documentação, na mesma ordem da navegação lateral (D17).
+// É o mesmo da página inicial (B8), que escreve o seu no próprio index.astro (D14): o layout usa este
+// nas outras páginas.
+const grupos = navegacao(await getCollection('docs'));
+---
+
+<footer class="rodape">
+  <div class="rodape-miolo">
+    <a class="marca" href={comBase('/')}>
+      <Logo class="marca-logo" />forge
+    </a>
+    <nav aria-label="Mapa do site">
+      <ul class="mapa" role="list">
+        {
+          grupos.map((grupo) => (
+            <li>
+              <span class="mapa-grupo" id={`mapa-${grupo.secao}`}>
+                {grupo.rotulo}
+              </span>
+              <ul aria-labelledby={`mapa-${grupo.secao}`} role="list">
+                {grupo.itens.map((item) => (
+                  <li>
+                    <a href={item.href}>{item.titulo}</a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</footer>

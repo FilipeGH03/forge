@@ -1,0 +1,2022 @@
+/*
+ * Estilo do site do forge. Os tokens, as regras e o porquê estão no DESIGN.md (raiz de site/).
+ * Paleta em OKLCH, a partir da semente do palette.mjs da impeccable: oklch(0.688 0.133 35.8).
+ * Global, sem estilo com escopo do Astro: o HTML do Markdown (contrato 1.1) chega sem classes.
+ */
+
+/* ---------- Tokens ---------- */
+
+:root {
+  color-scheme: light dark;
+
+  /* Claro */
+  --fundo: oklch(1 0 0);
+  --superficie: oklch(0.968 0.005 36);
+  --linha: oklch(0.9 0.007 36);
+  --linha-forte: oklch(0.8 0.01 36);
+  --tinta: oklch(0.235 0.014 36);
+  --suave: oklch(0.48 0.014 36);
+  --brasa: oklch(0.688 0.133 35.8);
+  --brasa-texto: oklch(0.52 0.15 36);
+  --brasa-fundo: oklch(0.955 0.025 36);
+  --aco: oklch(0.45 0.12 250);
+
+  /* Ferrugem: a cor da logo (D16), chapada na abertura e no fechamento da página inicial. Igual nos dois modos. */
+  --ferrugem: oklch(0.52 0.15 36);
+  --ferrugem-tinta: oklch(1 0 0);
+  --ferrugem-lide: oklch(0.95 0.025 40);
+  --ferrugem-contra: oklch(0.16 0.012 36);
+
+  /* Ferro: a barra do topo e os blocos de código, escuros nos dois modos */
+  --ferro: oklch(0.225 0.012 36);
+  --ferro-linha: oklch(0.225 0.012 36);
+  --ferro-tinta: oklch(0.92 0.01 36);
+  --ferro-suave: oklch(0.76 0.012 36);
+  --terminal: oklch(0.17 0.008 36);
+  /* A brasa como texto, só sobre o ferro e o terminal (5,9:1 ou mais nos dois modos); no papel ela é decorativa. */
+  --brasa-no-ferro: oklch(0.72 0.13 38);
+
+  /* Cores do código (tema de variáveis do Shiki, prefixo --codigo-) */
+  --codigo-foreground: var(--ferro-tinta);
+  --codigo-background: var(--ferro);
+  --codigo-token-keyword: oklch(0.82 0.1 55);
+  --codigo-token-function: oklch(0.79 0.12 45);
+  --codigo-token-string: oklch(0.8 0.08 240);
+  --codigo-token-string-expression: oklch(0.8 0.08 240);
+  --codigo-token-constant: oklch(0.84 0.09 85);
+  --codigo-token-parameter: oklch(0.86 0.05 40);
+  --codigo-token-comment: oklch(0.66 0.012 36);
+  --codigo-token-punctuation: oklch(0.74 0.012 36);
+  --codigo-token-link: oklch(0.8 0.08 240);
+
+  /* Tipografia */
+  --fonte-titulo: 'Archivo Variable', 'Arial Narrow', Arial, sans-serif;
+  --fonte-texto: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;
+  --fonte-codigo: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --t-menor: 0.8125rem;
+  --t-pequeno: 0.875rem;
+  --t-medio: 0.9375rem;
+  --t-texto: 1.0625rem;
+  --t-marca: 1.375rem;
+  --t-lide: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
+  --t-h3: 1.25rem;
+  --t-h2: clamp(1.45rem, 1.25rem + 0.8vw, 1.75rem);
+  --t-h1: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);
+  --t-vitrine: clamp(2.5rem, 1.2rem + 5.2vw, 5.75rem);
+  --t-vitrine-h2: clamp(1.875rem, 1.35rem + 2.4vw, 3.25rem);
+
+  /* Espaço */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-5: 1.5rem;
+  --e-6: 2rem;
+  --e-7: 3rem;
+  --e-8: 4.5rem;
+  --margem: var(--e-4);
+
+  --raio: 6px;
+  --raio-pequeno: 4px;
+  --medida: 70ch;
+  --largura-vitrine: 76rem;
+
+  --z-fixo: 10;
+  --z-pular: 20;
+
+  --saida: cubic-bezier(0.25, 1, 0.5, 1);
+  --saida-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Desktop grande: a coluna do conteúdo cresce (tabelas e blocos de código cabem sem rolar), e a faixa
+   de abertura das páginas acompanha, porque usa a mesma medida. */
+@media (min-width: 90rem) {
+  :root {
+    --medida: 88ch;
+  }
+}
+
+@media (min-width: 115rem) {
+  :root {
+    --medida: 112ch;
+  }
+}
+
+/* Escuro: o do sistema, a menos que o botão do topo tenha escolhido o claro (data-tema="claro")... */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    --fundo: oklch(0.165 0 0);
+    --superficie: oklch(0.205 0.006 36);
+    --linha: oklch(0.29 0.008 36);
+    --linha-forte: oklch(0.38 0.01 36);
+    --tinta: oklch(0.93 0.008 36);
+    --suave: oklch(0.74 0.01 36);
+    --brasa-texto: oklch(0.76 0.13 40);
+    --brasa-fundo: oklch(0.25 0.04 36);
+    --aco: oklch(0.78 0.09 245);
+
+    --ferro: oklch(0.125 0.004 36);
+    --ferro-linha: oklch(0.29 0.008 36);
+    --terminal: oklch(0.095 0.003 36);
+  }
+}
+
+/* ...ou o escolhido no botão (data-tema="escuro"). Os mesmos valores do bloco de cima: o tests/b6.test.mjs confere. */
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+  --fundo: oklch(0.165 0 0);
+  --superficie: oklch(0.205 0.006 36);
+  --linha: oklch(0.29 0.008 36);
+  --linha-forte: oklch(0.38 0.01 36);
+  --tinta: oklch(0.93 0.008 36);
+  --suave: oklch(0.74 0.01 36);
+  --brasa-texto: oklch(0.76 0.13 40);
+  --brasa-fundo: oklch(0.25 0.04 36);
+  --aco: oklch(0.78 0.09 245);
+
+  --ferro: oklch(0.125 0.004 36);
+  --ferro-linha: oklch(0.29 0.008 36);
+  --terminal: oklch(0.095 0.003 36);
+}
+
+:root[data-tema='claro'] {
+  color-scheme: light;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --margem: var(--e-6);
+  }
+}
+
+/* O recuo da coluna do texto: o mesmo na abertura da página e no artigo, para os dois alinharem. */
+:root {
+  --recuo: var(--margem);
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --recuo: clamp(var(--e-6), 4vw, var(--e-8));
+  }
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--e-5);
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-texto);
+  font-size: var(--t-texto);
+  line-height: 1.65;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fonte-titulo);
+  font-stretch: 112%;
+  line-height: 1.15;
+  text-wrap: balance;
+  color: var(--tinta);
+}
+
+a {
+  color: var(--brasa-texto);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklch, currentColor 45%, transparent);
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 160ms var(--saida);
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brasa-texto);
+  outline-offset: 2px;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--fonte-codigo);
+  font-variant-ligatures: none;
+}
+
+.pular {
+  position: absolute;
+  z-index: var(--z-pular);
+  top: var(--e-2);
+  left: var(--e-2);
+  padding: var(--e-2) var(--e-4);
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-titulo);
+  border-radius: var(--raio-pequeno);
+  transform: translateY(-200%);
+}
+
+.pular:focus {
+  transform: none;
+}
+
+/* ---------- Topo ---------- */
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-4);
+  min-height: 3.5rem;
+  padding: var(--e-2) var(--margem);
+  background: var(--ferro);
+  color: var(--ferro-tinta);
+  border-bottom: 1px solid var(--ferro-linha);
+  font-family: var(--fonte-titulo);
+}
+
+.topo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  font-size: var(--t-marca);
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* A logo (D16) em brasa sobre o ferro: a marca do site (no favicon, a mesma logo em branco sobre a ferrugem). */
+.marca-logo {
+  flex: none;
+  width: 1.3em;
+  height: auto;
+  color: var(--brasa-no-ferro);
+}
+
+.topo :focus-visible {
+  outline-color: var(--brasa-no-ferro);
+}
+
+.topo-direita {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+.topo-links {
+  display: flex;
+  gap: var(--e-1) var(--e-4);
+  font-size: var(--t-pequeno);
+  font-weight: 500;
+}
+
+.topo-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  opacity: 0.85;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.35em;
+  transition: opacity 160ms var(--saida), text-decoration-color 160ms var(--saida);
+}
+
+.topo .topo-links a:hover {
+  opacity: 1;
+  text-decoration-color: currentColor;
+}
+
+/* A seção aberta (Docs ou Comandos): cheia e sublinhada em brasa. */
+.topo .topo-links a[aria-current] {
+  opacity: 1;
+  text-decoration-color: var(--brasa-no-ferro);
+}
+
+/* Claro/escuro: só aparece com JS. A lua com o claro aberto, o sol com o escuro (aria-pressed). */
+.tema {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: calc(-1 * var(--e-2));
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: var(--raio);
+  color: var(--ferro-tinta);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 160ms var(--saida), color 160ms var(--saida);
+}
+
+.tema[hidden] {
+  display: none;
+}
+
+.tema:hover {
+  opacity: 1;
+  color: var(--brasa-no-ferro);
+}
+
+.tema svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tema[aria-pressed='true'] .tema-lua,
+.tema[aria-pressed='false'] .tema-sol {
+  display: none;
+}
+
+/* ---------- Página: abertura, navegação e conteúdo ---------- */
+
+/* No celular, em coluna: o menu "Páginas" (ferro, colado no topo), a abertura em ferrugem e o artigo.
+   No desktop, a abertura atravessa a largura toda e embaixo dela ficam a navegação e o artigo: o <main>
+   ocupa a grade inteira como subgrade, e a navegação (que vem antes dele no HTML, para o "Pular para o
+   conteúdo" pulá-la) entra na célula que ele deixa livre. */
+.pagina {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pagina > main {
+  min-width: 0;
+}
+
+@media (min-width: 64rem) {
+  .pagina {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .pagina > main {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+  }
+
+  .abertura-pagina {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .pagina > .menu {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .artigo {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+/* ---------- Abertura da página (D17) ---------- */
+
+/* A ferrugem cheia da página inicial, numa faixa: o título grande em Archivo e a descrição.
+   Sem movimento: a animação de entrada é só da abertura da página inicial. */
+.abertura-pagina {
+  padding-block: clamp(var(--e-6), 4.5vw, 4rem) clamp(var(--e-6), 4vw, 3.5rem);
+  background: var(--ferrugem);
+  color: var(--ferrugem-tinta);
+}
+
+.abertura-pagina-miolo {
+  max-width: calc(var(--medida) + 2 * var(--recuo));
+  padding-inline: var(--recuo);
+}
+
+.abertura-pagina h1 {
+  margin: 0;
+  color: var(--ferrugem-tinta);
+  font-size: var(--t-h1);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.022em;
+  overflow-wrap: break-word;
+}
+
+.descricao {
+  margin: var(--e-4) 0 0;
+  max-width: 60ch;
+  color: var(--ferrugem-lide);
+  font-size: var(--t-lide);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.abertura-pagina :focus-visible {
+  outline-color: var(--ferrugem-tinta);
+}
+
+@media (min-width: 64rem) {
+  .abertura-pagina {
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+
+  .abertura-pagina-miolo {
+    grid-column: 2;
+  }
+}
+
+/* ---------- Navegação lateral ---------- */
+
+/* No celular, um <details> em ferro logo abaixo do topo ("Páginas" e a página aberta). */
+.menu {
+  background: var(--ferro);
+  color: var(--ferro-tinta);
+  border-top: 1px solid color-mix(in oklch, var(--ferro-tinta) 14%, transparent);
+  font-family: var(--fonte-titulo);
+}
+
+.menu :focus-visible {
+  outline-color: var(--brasa-no-ferro);
+}
+
+.menu > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  min-height: 2.75rem;
+  padding: var(--e-2) var(--margem);
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--t-pequeno);
+}
+
+.menu > summary::-webkit-details-marker,
+.sumario > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Divisa dos dois <details> (navegação e sumário) quando recolhidos: um chevron, o mesmo nos dois. */
+.menu > summary::after,
+.sumario > summary::after {
+  content: '';
+  flex: none;
+  align-self: center;
+  width: 0.45em;
+  height: 0.45em;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-25%) rotate(45deg);
+  transition: transform 200ms var(--saida);
+}
+
+.menu[open] > summary::after,
+.sumario[open] > summary::after {
+  transform: translateY(15%) rotate(-135deg);
+}
+
+.menu-rotulo {
+  font-weight: 650;
+}
+
+.menu-atual {
+  color: var(--ferro-suave);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.menu nav {
+  padding: var(--e-2) var(--margem) var(--e-5);
+}
+
+.menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-grupos > li + li {
+  margin-top: var(--e-5);
+}
+
+.menu-grupo {
+  display: block;
+  padding: 0 var(--e-3) var(--e-2);
+  color: var(--ferro-suave);
+  font-size: var(--t-menor);
+  font-weight: 650;
+}
+
+.menu nav a {
+  display: block;
+  padding: 0.7rem var(--e-3);
+  border-radius: var(--raio-pequeno);
+  color: inherit;
+  font-size: var(--t-medio);
+  line-height: 1.35;
+  text-decoration: none;
+  transition: background-color 160ms var(--saida), color 160ms var(--saida);
+}
+
+.menu nav a:hover {
+  background: color-mix(in oklch, var(--ferro-tinta) 10%, var(--ferro));
+}
+
+.menu nav a[aria-current='page'] {
+  background: color-mix(in oklch, var(--ferro-tinta) 10%, var(--ferro));
+  color: var(--brasa-no-ferro);
+  font-weight: 650;
+}
+
+/* No desktop, a coluna da esquerda volta ao papel, fixa ao rolar. */
+@media (min-width: 64rem) {
+  .menu {
+    position: sticky;
+    z-index: var(--z-fixo);
+    top: 0;
+    align-self: start;
+    max-height: 100dvh;
+    overflow-y: auto;
+    background: var(--fundo);
+    color: var(--tinta);
+    border-top: 0;
+  }
+
+  .menu :focus-visible {
+    outline-color: var(--brasa-texto);
+  }
+
+  .menu > summary {
+    display: none;
+  }
+
+  .menu nav {
+    padding: var(--e-6) var(--e-5) var(--e-7);
+  }
+
+  .menu-grupo {
+    color: var(--suave);
+  }
+
+  .menu nav a {
+    padding-block: 0.4rem;
+  }
+
+  .menu nav a:hover {
+    background: var(--superficie);
+  }
+
+  .menu nav a[aria-current='page'] {
+    background: var(--brasa-fundo);
+    color: var(--brasa-texto);
+  }
+}
+
+/* ---------- Artigo ---------- */
+
+.artigo {
+  display: grid;
+  grid-template-columns: minmax(0, var(--medida));
+  grid-template-areas:
+    'sumario'
+    'prosa'
+    'paginacao';
+  align-content: start;
+  min-width: 0;
+  padding: var(--e-6) var(--recuo) var(--e-8);
+}
+
+/* No desktop, o fio entre a navegação e o artigo é do artigo: ele ocupa a altura toda da linha da grade,
+   e a navegação (fixa ao rolar) é só da altura da lista. */
+@media (min-width: 64rem) {
+  .artigo {
+    padding-top: var(--e-7);
+    border-left: 1px solid var(--linha);
+  }
+}
+
+/* ---------- Sumário ("Nesta página") ---------- */
+
+.sumario {
+  grid-area: sumario;
+  margin-bottom: var(--e-6);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-pequeno);
+}
+
+.sumario > summary {
+  display: flex;
+  align-items: center;
+  padding: var(--e-3) var(--e-4);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 650;
+}
+
+.sumario nav {
+  padding: 0 var(--e-4) var(--e-4);
+}
+
+.sumario ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sumario li + li {
+  margin-top: 0;
+}
+
+.sumario a {
+  display: block;
+  padding: 0.55rem 0;
+  color: var(--suave);
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.sumario a:hover {
+  color: var(--brasa-texto);
+}
+
+/* A seção que está na tela (marcada pelo script do Sumario.astro ao rolar). */
+.sumario a[aria-current] {
+  color: var(--tinta);
+  font-weight: 650;
+}
+
+.sumario-sub {
+  padding-left: var(--e-4);
+}
+
+@media (min-width: 80rem) {
+  .artigo {
+    grid-template-columns: minmax(0, var(--medida)) 13.5rem;
+    grid-template-areas:
+      'prosa sumario'
+      'paginacao .';
+    column-gap: var(--e-8);
+  }
+
+  .sumario {
+    position: sticky;
+    top: var(--e-6);
+    align-self: start;
+    max-height: calc(100dvh - var(--e-7));
+    overflow-y: auto;
+    margin: 0;
+    border: 0;
+  }
+
+  .sumario > summary {
+    display: none;
+  }
+
+  .sumario a {
+    position: relative;
+    padding-block: 0.3rem;
+  }
+
+  /* O triângulo da logo, deitado sobre a linha do sumário, aponta a seção que está na tela. */
+  .sumario a[aria-current]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: calc(-1 * var(--e-4) - 0.28em);
+    width: 0.56em;
+    height: 0.6em;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    background: var(--brasa);
+    transform: translateY(-50%);
+  }
+
+  .sumario-sub a[aria-current]::before {
+    left: calc(-2 * var(--e-4) - 0.28em);
+  }
+
+  .sumario nav {
+    padding: 0 0 0 var(--e-4);
+    border-left: 1px solid var(--linha);
+  }
+
+  .sumario nav::before {
+    content: 'Nesta página';
+    display: block;
+    margin-bottom: var(--e-2);
+    color: var(--tinta);
+    font-weight: 650;
+  }
+}
+
+/* ---------- Página anterior e seguinte ---------- */
+
+.paginacao {
+  grid-area: paginacao;
+  display: grid;
+  gap: var(--e-3);
+  margin-top: var(--e-7);
+  padding-top: var(--e-5);
+  border-top: 1px solid var(--linha);
+}
+
+.paginacao a {
+  display: block;
+  min-height: 2.75rem;
+  padding: var(--e-3) var(--e-4);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  color: var(--tinta);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: border-color 0.15s var(--saida), background-color 0.15s var(--saida);
+}
+
+.paginacao a:hover {
+  border-color: var(--brasa);
+  background: var(--brasa-fundo);
+}
+
+.paginacao-rotulo {
+  display: block;
+  color: var(--suave);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-menor);
+  font-weight: 600;
+}
+
+.paginacao-titulo {
+  display: block;
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-texto);
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.paginacao-seguinte {
+  text-align: right;
+}
+
+@media (min-width: 40rem) {
+  .paginacao {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .paginacao-anterior {
+    grid-column: 1;
+  }
+
+  .paginacao-seguinte {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paginacao a {
+    transition: none;
+  }
+}
+
+/* ---------- Prosa (o HTML do Markdown) ---------- */
+
+.prosa {
+  grid-area: prosa;
+  min-width: 0;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+.prosa > :first-child {
+  margin-top: 0;
+}
+
+.prosa p,
+.prosa ul,
+.prosa ol {
+  margin: 0 0 var(--e-4);
+}
+
+.prosa h2 {
+  position: relative;
+  margin: var(--e-7) 0 var(--e-4);
+  font-size: var(--t-h2);
+  font-weight: 720;
+  letter-spacing: -0.012em;
+}
+
+/* O triângulo da logo, pequeno e em brasa, marcando cada seção da página (D16). */
+.prosa h2::before {
+  content: '';
+  display: inline-block;
+  width: 0.56em;
+  height: 0.48em;
+  margin-right: 0.45em;
+  vertical-align: 0.08em;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: var(--brasa);
+}
+
+/* Link direto para cada ## e ### (plugin ancoras-nos-titulos e as páginas feitas dos dados): o "#" vem do CSS,
+   para não entrar no texto do título nem no sumário. Com mouse, aparece ao passar sobre o título ou no foco.
+   O preenchimento leva o alvo a 24px ou mais (WCAG 2.5.8), para o toque no celular, onde ele fica sempre à vista. */
+.ancora {
+  display: inline-block;
+  margin-left: 0.1em;
+  padding: 0.25em 0.4em;
+  color: var(--suave);
+  font-family: var(--fonte-titulo);
+  font-size: 0.8em;
+  font-weight: 400;
+  text-decoration: none;
+  transition: opacity 160ms var(--saida), color 160ms var(--saida);
+}
+
+.ancora::before {
+  content: '#';
+}
+
+.ancora:hover,
+.ancora:focus-visible {
+  color: var(--brasa-texto);
+}
+
+@media (hover: hover) {
+  .ancora {
+    opacity: 0;
+  }
+
+  :is(h2, h3):hover > .ancora,
+  .ancora:focus-visible {
+    opacity: 1;
+  }
+}
+
+.prosa h3 {
+  margin: var(--e-6) 0 var(--e-3);
+  font-size: var(--t-h3);
+  font-weight: 680;
+}
+
+.prosa h4 {
+  margin: var(--e-5) 0 var(--e-2);
+  font-size: var(--t-texto);
+  font-weight: 680;
+}
+
+@media (min-width: 64rem) {
+  .prosa h2::before {
+    position: absolute;
+    left: -1em;
+    top: 0.36em;
+    margin: 0;
+  }
+}
+
+.prosa ul,
+.prosa ol {
+  padding-left: 1.4em;
+}
+
+.prosa li + li,
+.prosa li > ul,
+.prosa li > ol {
+  margin-top: 0.35em;
+}
+
+.prosa li > ul,
+.prosa li > ol {
+  margin-bottom: 0;
+}
+
+.prosa li::marker {
+  color: var(--suave);
+}
+
+.prosa strong {
+  font-weight: 650;
+}
+
+.prosa hr {
+  margin: var(--e-7) 0;
+  border: 0;
+  border-top: 1px solid var(--linha);
+}
+
+.prosa blockquote {
+  margin: 0 0 var(--e-4);
+  padding: var(--e-3) var(--e-4);
+  background: var(--superficie);
+  border-radius: var(--raio);
+  color: var(--tinta);
+}
+
+.prosa blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.prosa img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Código na linha */
+.prosa :not(pre) > code {
+  padding: 0.1em 0.35em;
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  font-size: 0.86em;
+  overflow-wrap: anywhere;
+}
+
+.prosa a > code {
+  color: inherit;
+}
+
+/* Blocos de código: ferro, nos dois modos. Saída e texto puro ficam na superfície. */
+.prosa pre {
+  margin: 0 0 var(--e-5);
+  padding: var(--e-4) var(--e-5);
+  border: 1px solid var(--ferro-linha);
+  border-radius: var(--raio);
+  font-size: var(--t-pequeno);
+  line-height: 1.6;
+  tab-size: 2;
+  overflow-x: auto;
+}
+
+.prosa pre[data-language='text'] {
+  --codigo-foreground: var(--tinta);
+  --codigo-background: var(--superficie);
+  border-color: var(--linha);
+}
+
+.prosa pre code {
+  font-size: inherit;
+}
+
+/* Tabelas: embrulhadas pelo plugin tabelas-rolaveis, rolam dentro da caixa. */
+.prosa .tabela {
+  margin: 0 0 var(--e-5);
+  overflow-x: auto;
+  border-radius: var(--raio-pequeno);
+}
+
+.prosa table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-medio);
+  line-height: 1.5;
+}
+
+.prosa th,
+.prosa td {
+  padding: var(--e-2) var(--e-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--linha);
+}
+
+.prosa th {
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-pequeno);
+  font-weight: 650;
+  border-bottom: 1.5px solid var(--linha-forte);
+  white-space: nowrap;
+}
+
+.prosa th:first-child,
+.prosa td:first-child {
+  padding-left: 0;
+}
+
+/* ---------- Referência de comandos (/comandos/) ---------- */
+
+/* O índice: nome (link) e a ajuda de cada comando, numa lista só. */
+.indice-comandos {
+  margin: 0 0 var(--e-6);
+  padding: 0;
+  list-style: none;
+}
+
+.indice-comandos li {
+  display: grid;
+  gap: 0;
+  padding: var(--e-2) 0;
+  border-bottom: 1px solid var(--linha);
+}
+
+.indice-comandos li + li {
+  margin-top: 0;
+}
+
+.prosa .indice-nome {
+  font-family: var(--fonte-codigo);
+  font-size: var(--t-pequeno);
+  font-weight: 500;
+  padding-block: 0.15rem;
+}
+
+.indice-ajuda {
+  color: var(--suave);
+  font-size: var(--t-medio);
+  line-height: 1.45;
+}
+
+@media (min-width: 40rem) {
+  .indice-comandos li {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    column-gap: var(--e-4);
+    align-items: baseline;
+  }
+}
+
+/* Um comando: o `##` leva o nome em mono e o link da âncora. */
+.prosa .comando h2 code {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 0.92em;
+  font-weight: 700;
+}
+
+.comando-ajuda {
+  color: var(--tinta);
+  font-size: var(--t-lide);
+  line-height: 1.5;
+}
+
+.prosa .comando h3 {
+  margin: var(--e-5) 0 var(--e-2);
+  color: var(--suave);
+  font-size: var(--t-pequeno);
+  font-weight: 650;
+}
+
+.prosa .comando pre {
+  margin: 0;
+  background: var(--codigo-background);
+  color: var(--codigo-foreground);
+}
+
+.prosa .args-vazio {
+  margin: 0;
+  color: var(--suave);
+  font-size: var(--t-medio);
+}
+
+.prosa .args {
+  margin: var(--e-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prosa .args .arg {
+  margin: 0;
+  display: grid;
+  gap: var(--e-1) var(--e-4);
+  padding: var(--e-3) 0;
+  border-top: 1px solid var(--linha);
+}
+
+.prosa .args .arg:last-child {
+  border-bottom: 1px solid var(--linha);
+}
+
+.arg-cabeca,
+.arg-texto {
+  min-width: 0;
+}
+
+.prosa .arg-nome {
+  display: inline-block;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.arg-marcas {
+  display: block;
+  color: var(--suave);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-menor);
+  line-height: 1.4;
+}
+
+.prosa .arg-ajuda,
+.prosa .arg-meta {
+  margin: 0;
+  font-size: var(--t-medio);
+  line-height: 1.5;
+}
+
+.prosa .arg-ajuda + .arg-meta,
+.prosa .arg-meta + .arg-meta {
+  margin-top: var(--e-1);
+}
+
+.arg-meta {
+  color: var(--suave);
+}
+
+@media (min-width: 40rem) {
+  .arg {
+    grid-template-columns: 11rem minmax(0, 1fr);
+  }
+}
+
+/* Exemplo: o comando em ferro e a saída embaixo, na superfície, como um bloco só. */
+.exemplo {
+  margin: var(--e-2) 0 0;
+}
+
+.prosa .exemplo pre:first-child {
+  border-radius: var(--raio) var(--raio) 0 0;
+}
+
+.prosa .exemplo > pre:last-child,
+.prosa .exemplo .saida pre {
+  border-top: 0;
+  border-radius: 0 0 var(--raio) var(--raio);
+}
+
+.saida summary {
+  padding: var(--e-3) var(--e-5);
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-top: 0;
+  color: var(--tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saida[open] summary {
+  border-bottom-color: var(--linha);
+}
+
+.prosa .exemplo .saida pre {
+  border-top: 1px solid var(--linha);
+}
+
+.saida:not([open]) summary {
+  border-radius: 0 0 var(--raio) var(--raio);
+}
+
+/* ---------- Diagrama do fluxo (src/components/DiagramaFluxo.astro) ---------- */
+
+/* O SVG é inline, então usa os mesmos tokens e os dois modos. Tamanhos de texto em unidades do
+   viewBox (340 de largura): a 375px a escala fica em ~1, a 16rem de largura útil ela passa de 1 só um pouco. */
+.diagrama {
+  display: block;
+  width: 100%;
+  max-width: 26rem;
+  height: auto;
+  margin: var(--e-5) 0;
+  overflow: visible;
+}
+
+.diagrama text {
+  font-family: var(--fonte-titulo);
+  fill: var(--tinta);
+}
+
+.diagrama .dg-nome {
+  font-size: 15px;
+  font-weight: 680;
+}
+
+.diagrama .dg-sub,
+.diagrama .dg-rotulo {
+  font-size: 13px;
+  font-weight: 450;
+  fill: var(--suave);
+}
+
+.diagrama .dg-aviso {
+  font-weight: 650;
+  fill: var(--brasa-texto);
+}
+
+.diagrama .dg-legenda {
+  font-size: 15px;
+  font-weight: 680;
+  fill: var(--suave);
+}
+
+.diagrama .dg-numero {
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--ferro-tinta);
+}
+
+.diagrama .dg-caixa {
+  fill: var(--superficie);
+  stroke: var(--suave);
+  stroke-width: 1.25;
+}
+
+/* Parada: borda grossa e octógono; o aviso em texto está dentro da caixa. */
+.diagrama .dg-caixa.dg-parada {
+  fill: var(--brasa-fundo);
+  stroke: var(--brasa-texto);
+  stroke-width: 2.5;
+}
+
+/* Condicional: tracejada; o rótulo que diz "se houver" vem do fluxo.json. */
+.diagrama .dg-caixa.dg-condicional {
+  fill: var(--fundo);
+  stroke-dasharray: 6 4;
+}
+
+.diagrama .dg-caixa.dg-transversal {
+  fill: var(--fundo);
+}
+
+.diagrama .dg-emblema {
+  fill: var(--ferro);
+  stroke: var(--suave);
+  stroke-width: 1.25;
+}
+
+.diagrama .dg-emblema.dg-parada {
+  fill: var(--brasa-fundo);
+  stroke: var(--brasa-texto);
+  stroke-width: 2.5;
+}
+
+.diagrama .dg-emblema.dg-transversal {
+  fill: var(--ferro);
+}
+
+.diagrama .dg-parada + .dg-numero {
+  fill: var(--brasa-texto);
+}
+
+.diagrama .dg-fio,
+.diagrama .dg-desvio {
+  fill: none;
+  stroke: var(--suave);
+  stroke-width: 1.5;
+}
+
+.diagrama .dg-ponta {
+  fill: var(--suave);
+}
+
+/* Lista de texto que acompanha o diagrama: a mesma informação, para ler e para quem não vê o desenho. */
+.prosa .fluxo-lista {
+  list-style: none;
+  padding-left: 0;
+}
+
+.fluxo-lista li {
+  padding: var(--e-3) 0;
+  border-top: 1px solid var(--linha);
+}
+
+.fluxo-lista li:last-child {
+  border-bottom: 1px solid var(--linha);
+}
+
+.fluxo-lista .fluxo-titulo {
+  display: block;
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-medio);
+  font-weight: 680;
+}
+
+.fluxo-lista .fluxo-marca {
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-pequeno);
+  font-weight: 650;
+  color: var(--brasa-texto);
+}
+
+/* ---------- Página inicial (src/pages/index.astro, D16) ---------- */
+
+/* Ferrugem na abertura e no fechamento; no meio, papel para ler e ferro para a prova.
+   Cada seção é uma ideia só, numa coluna de no máximo 76rem. */
+main.vitrine {
+  padding: 0;
+}
+
+.abertura-miolo,
+.problema-miolo,
+.prova-miolo,
+.fluxo-miolo,
+.ferramentas-miolo,
+.feitos-miolo,
+.fechamento-miolo,
+.rodape-miolo {
+  max-width: var(--largura-vitrine);
+  margin-inline: auto;
+  padding-inline: var(--margem);
+}
+
+.vitrine h2 {
+  margin: 0;
+  font-size: var(--t-vitrine-h2);
+  font-weight: 780;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+:where(.vitrine) p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.vitrine :not(pre) > code {
+  padding: 0.1em 0.35em;
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  font-size: 0.86em;
+}
+
+.vitrine a > code {
+  color: inherit;
+}
+
+/* Botões: só na ferrugem. O cheio é a ação principal; o vazado, a alternativa. */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-3);
+  margin-top: var(--e-6);
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border: 1.5px solid var(--ferrugem-tinta);
+  border-radius: var(--raio);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-medio);
+  font-weight: 650;
+  line-height: 1.25;
+  text-decoration: none;
+  transition: background-color 160ms var(--saida), color 160ms var(--saida);
+}
+
+.botao-cheio {
+  background: var(--ferrugem-tinta);
+  color: var(--ferrugem-contra);
+}
+
+.botao-cheio:hover {
+  background: var(--ferrugem-lide);
+}
+
+.botao-vazado {
+  color: var(--ferrugem-tinta);
+}
+
+.botao-vazado:hover {
+  background: color-mix(in oklch, var(--ferrugem-tinta) 14%, transparent);
+}
+
+/* Na ferrugem o anel de foco de sempre (brasa de texto) sumiria: lá ele é branco. */
+.abertura :focus-visible,
+.fechamento :focus-visible {
+  outline-color: var(--ferrugem-tinta);
+}
+
+/* Abertura */
+.abertura {
+  padding-block: clamp(var(--e-7), 9vw, 8rem) clamp(var(--e-7), 8vw, 7rem);
+  background: var(--ferrugem);
+  color: var(--ferrugem-tinta);
+}
+
+.abertura-miolo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-6);
+}
+
+.abertura-logo {
+  width: clamp(5.5rem, 24vw, 8rem);
+  height: auto;
+  color: var(--ferrugem-tinta);
+}
+
+.abertura h1 {
+  margin: 0;
+  color: var(--ferrugem-tinta);
+  font-size: var(--t-vitrine);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+
+.abertura-linha {
+  display: block;
+}
+
+/* Tinta quase preta na ferrugem: 3,3:1, só em texto deste tamanho (texto grande, AA pede 3:1). */
+.abertura-contra {
+  color: var(--ferrugem-contra);
+}
+
+.abertura-lide {
+  max-width: 56ch;
+  margin-top: var(--e-5);
+  color: var(--ferrugem-lide);
+  font-size: var(--t-lide);
+  line-height: 1.5;
+}
+
+.instalar {
+  display: flex;
+  max-width: 50rem;
+  margin-top: var(--e-6);
+  background: var(--terminal);
+  color: var(--ferro-tinta);
+  border-radius: var(--raio);
+}
+
+.instalar pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: var(--e-4) var(--e-5);
+  font-size: var(--t-pequeno);
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.instalar-prompt,
+.terminal-comando > span {
+  color: var(--brasa-no-ferro);
+  user-select: none;
+}
+
+.copiar {
+  flex: none;
+  min-width: 2.75rem;
+  padding: 0 var(--e-4);
+  background: none;
+  border: 0;
+  border-left: 1px solid color-mix(in oklch, var(--ferro-tinta) 18%, transparent);
+  color: var(--ferro-tinta);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-menor);
+  font-weight: 650;
+  cursor: pointer;
+  transition: color 160ms var(--saida);
+}
+
+.copiar:hover {
+  color: var(--brasa-no-ferro);
+}
+
+.copiar:focus-visible {
+  outline-color: var(--brasa-no-ferro);
+  outline-offset: -4px;
+}
+
+@media (min-width: 64rem) {
+  .abertura-miolo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    align-items: center;
+    column-gap: var(--e-8);
+  }
+
+  .abertura-logo {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .abertura-texto {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* As quatro fitas da logo se encaixam, cada uma vindo do seu lado, e o título sobe logo depois.
+   É o único movimento orquestrado da página; sem ele (reduced-motion), tudo já está no lugar. */
+@media (prefers-reduced-motion: no-preference) {
+  .abertura-logo .fita {
+    animation: fita-encaixa 1100ms var(--saida-expo) both;
+  }
+
+  .abertura-logo .fita-1 {
+    --de: 26px, 14px;
+    animation-delay: 80ms;
+  }
+
+  .abertura-logo .fita-2 {
+    --de: -18px, -20px;
+    animation-delay: 160ms;
+  }
+
+  .abertura-logo .fita-3 {
+    --de: 16px, -22px;
+    animation-delay: 240ms;
+  }
+
+  .abertura-logo .fita-4 {
+    --de: -26px, 14px;
+    animation-delay: 320ms;
+  }
+
+  .abertura-linha {
+    animation: linha-sobe 900ms var(--saida-expo) both;
+    animation-delay: 260ms;
+  }
+
+  .abertura-contra {
+    animation-delay: 420ms;
+  }
+}
+
+@keyframes fita-encaixa {
+  from {
+    opacity: 0;
+    transform: translate(var(--de));
+  }
+}
+
+@keyframes linha-sobe {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+}
+
+/* O problema: a afirmação grande à esquerda, as três falhas e a resposta à direita. */
+.problema {
+  padding-block: clamp(var(--e-8), 10vw, 8rem);
+}
+
+.problema-miolo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-6);
+}
+
+.falhas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.falhas li {
+  padding: var(--e-5) 0;
+  border-top: 1px solid var(--linha);
+  text-wrap: pretty;
+}
+
+.falhas li:last-child {
+  border-bottom: 1px solid var(--linha);
+}
+
+.falhas strong {
+  display: block;
+  margin-bottom: var(--e-1);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-h3);
+  font-stretch: 112%;
+  font-weight: 720;
+  line-height: 1.2;
+}
+
+.resposta {
+  max-width: 60ch;
+  font-size: var(--t-lide);
+  line-height: 1.5;
+}
+
+.resposta a,
+.seguir {
+  display: table;
+  margin-top: var(--e-4);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-medio);
+  font-weight: 650;
+}
+
+.resposta a::after,
+.seguir::after {
+  content: ' →';
+}
+
+@media (min-width: 64rem) {
+  .problema-miolo {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    column-gap: var(--e-8);
+  }
+
+  .problema h2 {
+    grid-row: span 2;
+    position: sticky;
+    top: var(--e-6);
+    align-self: start;
+  }
+}
+
+/* A prova: a saída real do status, em ferro. */
+.prova {
+  padding-block: clamp(var(--e-8), 9vw, 7rem);
+  background: var(--ferro);
+  color: var(--ferro-tinta);
+  border-block: 1px solid var(--ferro-linha);
+}
+
+.prova h2 {
+  color: inherit;
+}
+
+.prova a {
+  color: var(--brasa-no-ferro);
+}
+
+.prova :focus-visible {
+  outline-color: var(--brasa-no-ferro);
+}
+
+.prova :not(pre) > code {
+  background: color-mix(in oklch, var(--ferro-tinta) 10%, var(--ferro));
+  border-color: color-mix(in oklch, var(--ferro-tinta) 20%, transparent);
+}
+
+.prova-miolo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-7);
+}
+
+.prova-texto > p {
+  max-width: 52ch;
+  margin-top: var(--e-4);
+}
+
+.leitura {
+  margin: var(--e-6) 0 0;
+}
+
+.leitura div {
+  padding: var(--e-3) 0;
+  border-top: 1px solid color-mix(in oklch, var(--ferro-tinta) 18%, transparent);
+}
+
+.leitura dt {
+  font-family: var(--fonte-titulo);
+  font-weight: 680;
+}
+
+.leitura dd {
+  margin: 0;
+  color: var(--ferro-suave);
+  font-size: var(--t-medio);
+  line-height: 1.5;
+}
+
+.terminal {
+  min-width: 0;
+  margin: 0;
+}
+
+.terminal pre {
+  margin: 0;
+  padding: var(--e-5);
+  background: var(--terminal);
+  border: 1px solid color-mix(in oklch, var(--ferro-tinta) 14%, transparent);
+  border-radius: var(--raio);
+  color: var(--ferro-tinta);
+  font-size: var(--t-menor);
+  line-height: 1.75;
+  overflow-x: auto;
+}
+
+.terminal-comando {
+  color: var(--codigo-token-function);
+}
+
+.terminal figcaption {
+  margin-top: var(--e-3);
+  color: var(--ferro-suave);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-menor);
+}
+
+@media (min-width: 64rem) {
+  .prova-miolo {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    column-gap: var(--e-8);
+  }
+}
+
+/* O fluxo: os dois desenhos do DiagramaFluxo lado a lado no desktop. */
+.fluxo {
+  padding-block: clamp(var(--e-8), 10vw, 8rem);
+}
+
+.fluxo-miolo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-6);
+}
+
+.fluxo-cabeca > p {
+  max-width: 52ch;
+  margin-top: var(--e-4);
+}
+
+.fluxo-desenhos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-6);
+  align-items: start;
+}
+
+.fluxo-desenhos .diagrama {
+  margin: 0;
+}
+
+@media (min-width: 48rem) {
+  .fluxo-desenhos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 72rem) {
+  .fluxo-miolo {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    column-gap: var(--e-8);
+  }
+
+  .fluxo-cabeca {
+    position: sticky;
+    top: var(--e-6);
+    align-self: start;
+  }
+}
+
+/* A parede de ferramentas: os comandos como etiquetas, cada uma com link para a sua âncora. */
+.ferramentas {
+  padding-block: clamp(var(--e-8), 9vw, 7rem);
+  background: var(--superficie);
+  border-block: 1px solid var(--linha);
+}
+
+.ferramentas-miolo > p {
+  max-width: 56ch;
+  margin-top: var(--e-4);
+}
+
+.parede {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+  margin: var(--e-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parede a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 var(--e-4);
+  background: var(--fundo);
+  border: 1px solid var(--linha-forte);
+  border-radius: var(--raio-pequeno);
+  color: var(--tinta);
+  font-size: var(--t-medio);
+  text-decoration: none;
+  transition: border-color 160ms var(--saida), background-color 160ms var(--saida), color 160ms var(--saida);
+}
+
+.parede a:hover {
+  background: var(--brasa-fundo);
+  border-color: var(--brasa-texto);
+  color: var(--brasa-texto);
+}
+
+/* Feito com forge: linhas largas, não cards. O último item é o convite. */
+.feitos {
+  padding-block: clamp(var(--e-8), 10vw, 8rem);
+}
+
+.projetos {
+  margin: var(--e-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.projeto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-2);
+  padding: var(--e-6) 0;
+  border-top: 1px solid var(--linha);
+}
+
+.projeto:last-child {
+  border-bottom: 1px solid var(--linha);
+}
+
+.vitrine .projeto-nome {
+  margin: 0;
+  font-size: var(--t-h2);
+  font-weight: 720;
+  line-height: 1.1;
+}
+
+.projetos-um .projeto:first-child .projeto-nome {
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
+  font-weight: 780;
+}
+
+.projeto-descricao {
+  max-width: 60ch;
+}
+
+.projeto-plano {
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-medio);
+  font-weight: 650;
+}
+
+.projeto-data {
+  color: var(--suave);
+  font-weight: 400;
+}
+
+.projeto-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-1) var(--e-5);
+  font-family: var(--fonte-titulo);
+  font-size: var(--t-medio);
+  font-weight: 650;
+}
+
+.projeto-links a {
+  padding-block: var(--e-2);
+}
+
+.projeto-links span {
+  padding-block: var(--e-2);
+  color: var(--suave);
+  font-weight: 500;
+}
+
+.vitrine .projeto-seu .projeto-nome {
+  color: var(--suave);
+}
+
+@media (min-width: 48rem) {
+  .projeto {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    column-gap: var(--e-7);
+  }
+
+  .projeto-nome {
+    grid-row: span 3;
+  }
+}
+
+/* Fechamento */
+.fechamento {
+  padding-block: clamp(var(--e-8), 10vw, 8rem);
+  background: var(--ferrugem);
+  color: var(--ferrugem-tinta);
+}
+
+.fechamento h2 {
+  color: inherit;
+}
+
+.fechamento-miolo > p {
+  max-width: 48ch;
+  margin-top: var(--e-4);
+  color: var(--ferrugem-lide);
+  font-size: var(--t-lide);
+  line-height: 1.5;
+}
+
+/* Rodapé: a marca e o mapa da documentação, na mesma ordem da navegação lateral. */
+.rodape {
+  padding-block: var(--e-7) var(--e-8);
+  background: var(--ferro);
+  color: var(--ferro-tinta);
+  font-family: var(--fonte-titulo);
+}
+
+.rodape a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rodape a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.rodape :focus-visible {
+  outline-color: var(--brasa-no-ferro);
+}
+
+.rodape-miolo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-6);
+}
+
+.mapa {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--e-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mapa-grupo {
+  color: var(--ferro-suave);
+  font-size: var(--t-menor);
+  font-weight: 650;
+}
+
+.mapa ul {
+  margin: var(--e-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mapa ul a {
+  display: block;
+  padding-block: 0.6rem;
+  font-size: var(--t-medio);
+  line-height: 1.35;
+}
+
+@media (min-width: 64rem) {
+  .rodape-miolo {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    column-gap: var(--e-8);
+  }
+
+  .rodape .marca {
+    align-self: start;
+  }
+
+  .mapa ul a {
+    padding-block: 0.3rem;
+  }
+}
+
+/* ---------- Movimento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

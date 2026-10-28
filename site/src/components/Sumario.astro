@@ -1,0 +1,52 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  titulos: MarkdownHeading[];
+}
+
+// Só `##` e `###`: o `#` é o título da página (contrato 1.1) e mais fundo que `###` vira ruído.
+const titulos = Astro.props.titulos.filter((t) => t.depth === 2 || t.depth === 3);
+---
+
+{
+  titulos.length > 1 && (
+    <>
+      <details class="sumario" open>
+        <summary>Nesta página</summary>
+        <nav aria-label="Nesta página">
+          <ul>
+            {titulos.map((t) => (
+              <li class={t.depth === 3 ? 'sumario-sub' : undefined}>
+                <a href={`#${t.slug}`}>{t.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </details>
+      <script is:inline>
+        fixarAberto(document.currentScript.previousElementSibling, '(min-width: 80rem)');
+        (() => {
+          const sumario = document.currentScript.previousElementSibling;
+          // Ao rolar, marca no sumário a seção que está na tela: a do último título que já passou do terço de cima.
+          const links = [...sumario.querySelectorAll('a[href^="#"]')];
+          let titulos = [];
+          let pedido = 0;
+          const marcar = () => {
+            pedido = 0;
+            const linha = innerHeight / 3;
+            let i = titulos.findLastIndex((t) => t && t.getBoundingClientRect().top <= linha);
+            if (i >= 0 && innerHeight + scrollY >= document.documentElement.scrollHeight - 2) i = titulos.length - 1;
+            links.forEach((a, j) => (j === i ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
+          };
+          // Os títulos vêm depois do sumário no HTML: só existem quando a página termina de carregar.
+          addEventListener('DOMContentLoaded', () => {
+            titulos = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+            addEventListener('scroll', () => (pedido ||= requestAnimationFrame(marcar)), { passive: true });
+            marcar();
+          });
+        })();
+      </script>
+    </>
+  )
+}

@@ -1,0 +1,74 @@
+# Publica o site de documentação (site/) no GitHub Pages a cada push na main (D8).
+# Endereço: https://filipegh03.github.io/forge/
+name: Publicar site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Um deploy por vez; um push novo espera a publicação em andamento terminar, nunca a corta no meio.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+        with:
+          # Alguns testes comparam com o histórico (branch main e commits antigos).
+          fetch-depth: 0
+
+      - name: Preparar o Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      # O prebuild (scripts/extrair.py) lê o forge.py e o SKILL.md.
+      - name: Preparar o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar as dependências
+        run: npm ci
+
+      - name: Testes do Node
+        run: npm test
+
+      - name: Testes do Python
+        working-directory: .
+        run: python -m unittest discover -s site/scripts
+
+      # O prebuild gera os dados (comandos.json e fluxo.json) antes do astro build.
+      - name: Build do site
+        run: npm run build
+
+      - name: Subir o artefato do Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

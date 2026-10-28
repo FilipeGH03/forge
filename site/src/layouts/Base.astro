@@ -1,0 +1,148 @@
+---
+import type { MarkdownHeading } from 'astro';
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/source-serif-4/opsz.css';
+import '@fontsource-variable/source-serif-4/opsz-italic.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
+// As duas fontes da primeira dobra (títulos e texto), pré-carregadas: o mesmo arquivo que o CSS acima usa.
+import fonteTitulo from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+import fonteTexto from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2?url';
+import '../estilos/global.css';
+import Logo from '../components/Logo.astro';
+import NavLateral from '../components/NavLateral.astro';
+import Rodape from '../components/Rodape.astro';
+import Sumario from '../components/Sumario.astro';
+import { comBase } from '../lib/navegacao';
+import Paginacao from '../components/Paginacao.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  titulo: string;
+  descricao: string;
+  /** Slug da página de docs aberta, para a navegação lateral marcá-la. */
+  atual?: string;
+  /** Títulos da página, para o sumário ("Nesta página"). */
+  titulos?: MarkdownHeading[];
+  /** `true` na página inicial: o título da aba fica só "forge" (sem "· forge" repetido). Sem a prop,
+   * vale `true` para a página que não é de docs (sem `atual`), até o dono passá-la na página inicial (D14). */
+  inicio?: boolean;
+  /** Páginas vizinhas na ordem da navegação, para os links de anterior e seguinte. */
+  anterior?: CollectionEntry<'docs'>;
+  seguinte?: CollectionEntry<'docs'>;
+  /** `true` na página inicial: o conteúdo ocupa a largura toda, sem navegação lateral nem artigo (D16). */
+  vitrine?: boolean;
+}
+
+const { titulo, descricao, atual, titulos = [], inicio = atual === undefined, anterior, seguinte, vitrine = false } = Astro.props;
+const REPOSITORIO = 'https://github.com/FilipeGH03/forge';
+// O atalho do topo que corresponde à página aberta: Comandos na /comandos/, Docs nas outras páginas com navegação.
+const secaoDoTopo = atual === 'comandos' ? 'comandos' : atual ? 'docs' : undefined;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={descricao} />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href={comBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={comBase('/apple-touch-icon.png')} />
+    <link rel="preload" href={fonteTitulo} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fonteTexto} as="font" type="font/woff2" crossorigin />
+    <title>{inicio ? 'forge' : `${titulo} · forge`}</title>
+    <script is:inline>
+      // Tema escolhido no botão do topo (claro ou escuro), aplicado antes da pintura. Sem escolha, vale o do sistema.
+      try {
+        const tema = localStorage.getItem('forge-tema');
+        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
+      } catch {}
+      // Navegação e sumário são <details>: abertos (e sem o botão) a partir de uma largura,
+      // recolhidos abaixo dela. Sem JS ficam abertos em qualquer largura.
+      window.fixarAberto = (detalhes, consulta) => {
+        const mq = matchMedia(consulta);
+        const aplicar = () => {
+          detalhes.open = mq.matches;
+        };
+        aplicar();
+        mq.addEventListener('change', aplicar);
+      };
+    </script>
+  </head>
+  <body>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+    <header class="topo">
+      <a class="marca" href={comBase('/')}>
+        <Logo class="marca-logo" />forge
+      </a>
+      <div class="topo-direita">
+        <nav class="topo-links" aria-label="Atalhos">
+          <a href={comBase('/docs/visao-geral/')} aria-current={secaoDoTopo === 'docs' ? 'true' : undefined}>Docs</a>
+          <a href={comBase('/comandos/')} aria-current={secaoDoTopo === 'comandos' ? 'true' : undefined}>Comandos</a>
+          <a href={REPOSITORIO}>GitHub</a>
+        </nav>
+        <button class="tema" type="button" aria-label="Modo escuro" aria-pressed="false" hidden>
+          <svg class="tema-lua" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"></path>
+          </svg>
+          <svg class="tema-sol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    {
+      vitrine ? (
+        <main id="conteudo" class="vitrine">
+          <slot />
+        </main>
+      ) : (
+        <div class="pagina">
+          <NavLateral atual={atual} />
+          <main id="conteudo">
+            <header class="abertura-pagina">
+              <div class="abertura-pagina-miolo">
+                <h1>{titulo}</h1>
+                <p class="descricao">{descricao}</p>
+              </div>
+            </header>
+            <article class="artigo">
+              <Sumario titulos={titulos} />
+              <div class="prosa">
+                <slot />
+              </div>
+              <Paginacao anterior={anterior} seguinte={seguinte} />
+            </article>
+          </main>
+        </div>
+      )
+    }
+    {Astro.slots.has('rodape') ? <slot name="rodape" /> : <Rodape />}
+    <script is:inline>
+      // O botão de claro/escuro só aparece com JS. A escolha fica no navegador; voltar ao tema do sistema
+      // apaga a escolha, e o site passa a seguir o sistema de novo.
+      (() => {
+        const botao = document.querySelector('.tema');
+        const raiz = document.documentElement;
+        const sistema = matchMedia('(prefers-color-scheme: dark)');
+        const atual = () => raiz.dataset.tema ?? (sistema.matches ? 'escuro' : 'claro');
+        const mostrar = () => botao.setAttribute('aria-pressed', String(atual() === 'escuro'));
+        botao.hidden = false;
+        mostrar();
+        sistema.addEventListener('change', mostrar);
+        botao.addEventListener('click', () => {
+          const novo = atual() === 'escuro' ? 'claro' : 'escuro';
+          const doSistema = (sistema.matches ? 'escuro' : 'claro') === novo;
+          if (doSistema) delete raiz.dataset.tema;
+          else raiz.dataset.tema = novo;
+          try {
+            if (doSistema) localStorage.removeItem('forge-tema');
+            else localStorage.setItem('forge-tema', novo);
+          } catch {}
+          mostrar();
+        });
+      })();
+    </script>
+  </body>
+</html>

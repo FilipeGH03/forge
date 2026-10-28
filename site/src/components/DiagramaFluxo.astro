@@ -1,0 +1,70 @@
+---
+import dados from '../data/fluxo.json';
+import { montarDiagrama, pontos, PARTES } from '../lib/diagrama.mjs';
+
+interface Props {
+  /** O que desenhar, na ordem em que vêm: `fases`, `onda` e/ou `transversais`. Padrão: as três. */
+  partes?: (typeof PARTES)[number][];
+  /** Um título dentro do desenho para cada parte. Padrão: só quando há mais de uma parte. */
+  legendas?: boolean;
+  /** Prefixo dos ids do SVG. Precisa ser único na página quando ela tem mais de um diagrama. */
+  id?: string;
+  /** O fluxo (contrato 1.3). Padrão: o src/data/fluxo.json, gerado no build. */
+  fluxo?: typeof dados;
+}
+
+const { partes = [...PARTES], id = 'fluxo', fluxo = dados, legendas } = Astro.props;
+const d = montarDiagrama(fluxo, { partes, id, legendas });
+const idTitulo = `${d.id}-titulo`;
+const idDesc = `${d.id}-desc`;
+const idSeta = `${d.id}-seta`;
+---
+
+<svg
+  class="diagrama"
+  viewBox={`0 0 ${d.largura} ${d.altura}`}
+  role="img"
+  aria-labelledby={`${idTitulo} ${idDesc}`}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title id={idTitulo}>{d.titulo}</title>
+  <desc id={idDesc}>{d.descricao}</desc>
+  <defs>
+    <marker id={idSeta} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="dg-ponta" d="M 0 0 L 10 5 L 0 10 z"></path>
+    </marker>
+  </defs>
+  {
+    d.formas.map((f) => {
+      if (f.tipo === 'caixa') {
+        return <rect class={f.classe} x={f.x} y={f.y} width={f.w} height={f.h} rx="4"></rect>;
+      }
+      if (f.tipo === 'fio') {
+        return <path class={f.classe ?? 'dg-fio'} d={f.d} marker-end={f.seta ? `url(#${idSeta})` : undefined}></path>;
+      }
+      if (f.tipo === 'emblema') {
+        return (
+          <>
+            {f.forma === 'circulo' ? (
+              <circle class={f.classe} cx={f.cx} cy={f.cy} r={f.r}></circle>
+            ) : (
+              <polygon class={f.classe} points={pontos(f.forma, f.cx, f.cy, f.r)}></polygon>
+            )}
+            <text class="dg-numero" x={f.cx} y={f.cy} text-anchor="middle" dominant-baseline="central">
+              {f.texto}
+            </text>
+          </>
+        );
+      }
+      return (
+        <text class={f.classe} text-anchor={f.ancora} dominant-baseline="central">
+          {f.linhas.map((l) => (
+            <tspan x={l.x} y={l.y}>
+              {l.texto}
+            </tspan>
+          ))}
+        </text>
+      );
+    })
+  }
+</svg>

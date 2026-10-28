@@ -21,7 +21,36 @@ REGISTRO = Path(os.environ.get("FORGE_REGISTRO") or Path.home() / ".claude" / "f
 
 FASES = ["requisitos", "aguardando-aprovacao", "aprovado", "em-execucao", "fechado"]
 ESTADOS = {"pendente": "☐", "feito": "✔", "revisar": "⟳"}
-PAPEIS = ["executor", "revisor-contrato", "revisor-padroes", "testador"]
+# Os papéis de cada tarefa numa onda, na ordem do references/workflow-onda.js. É daqui que sai a tabela da
+# seção 9 do plano (faz em Markdown) e o fluxo.json do site.
+PAPEIS = {
+    "executor": {"nome": "Executor", "faz": "Faz a tarefa, testa e commita com o ID na mensagem.",
+                 "escreve_codigo": "sim"},
+    "revisor-contrato": {"nome": "Revisor de contrato",
+                         "faz": "Adversarial: procura onde a mudança contraria uma decisão, quebra um contrato "
+                                "ou outra frente.",
+                         "escreve_codigo": "não"},
+    "revisor-padroes": {"nome": "Revisor de padrões",
+                        "faz": "Padrões do repositório (CLAUDE.md, README, lint, skills de padrões da stack) e "
+                               "simplicidade; sempre procura uma forma mais simples, reutilizável ou genérica de "
+                               "fazer o mesmo.",
+                        "escreve_codigo": "não"},
+    "testador": {"nome": "Testador",
+                 "faz": "Independente: confere o *como testar*, escreve o teste que falta e roda. Não corrige "
+                        "código de produção.",
+                 "escreve_codigo": "só testes"},
+}
+# Os valores de "escreve_codigo" de um papel (a coluna "Escreve código?" da seção 9)
+ESCREVE_CODIGO = ("sim", "não", "só testes")
+
+
+def conferir_papeis(papeis):
+    for pid, papel in papeis.items():
+        if papel["escreve_codigo"] not in ESCREVE_CODIGO:
+            raise ValueError(f"papel {pid}: escreve_codigo {papel['escreve_codigo']!r} fora de {ESCREVE_CODIGO}")
+
+
+conferir_papeis(PAPEIS)
 
 # Modelo e esforço de cada papel por complexidade da tarefa. O plano pode sobrepor qualquer célula em
 # agentes.modelos; o Opus fica só onde errar custa caro (código difícil e furo de contrato).
@@ -453,10 +482,8 @@ def gerar_md(plano, caminho_json):
     a("## 9. Tocar o trabalho com agentes\n")
     a("Cada tarefa passa por quatro papéis, numa onda executada pelo `references/workflow-onda.js` da skill:\n")
     a("| Papel | O que faz | Escreve código? |\n|---|---|---|")
-    a("| **Executor** | Faz a tarefa, testa e commita com o ID na mensagem. | sim |")
-    a("| **Revisor de contrato** | Adversarial: procura onde a mudança contraria uma decisão, quebra um contrato ou outra frente. | não |")
-    a("| **Revisor de padrões** | Padrões do repositório (CLAUDE.md, README, lint, skills de padrões da stack) e simplicidade; sempre procura uma forma mais simples, reutilizável ou genérica de fazer o mesmo. | não |")
-    a("| **Testador** | Independente: confere o *como testar*, escreve o teste que falta e roda. Não corrige código de produção. | só testes |")
+    for papel in PAPEIS.values():
+        a(f"| **{papel['nome']}** | {papel['faz']} | {papel['escreve_codigo']} |")
     a("")
     a(f"Push ao terminar: **{'sim' if plano['agentes'].get('push') else 'não — só commit local'}**.\n")
     a("Modelo e esforço de cada papel, pela complexidade da tarefa (coluna da seção 7; `agentes.modelos` no "
@@ -946,8 +973,8 @@ def cmd_contexto(a):
             print()
 
 
-def main():
-    configurar_saida()
+def montar_parser():
+    """O parser da linha de comando, com um subparser por comando — o site lê os comandos daqui."""
     p = argparse.ArgumentParser(prog="forge.py", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="comando", required=True)
@@ -1030,7 +1057,7 @@ def main():
 
     s = comando("briefing", cmd_briefing, "mostra o briefing de um papel para uma tarefa")
     s.add_argument("id")
-    s.add_argument("--papel", choices=PAPEIS, default="executor")
+    s.add_argument("--papel", choices=list(PAPEIS), default="executor")
 
     s = comando("onda", cmd_onda, "escolhe a próxima onda, grava os briefings e imprime o args do workflow")
     s.add_argument("--max", type=int, default=3, help="máximo de tarefas na onda (padrão 3)")
@@ -1041,8 +1068,12 @@ def main():
 
     s = comando("contexto", cmd_contexto, "resumo dos planos que interessam a uma pasta", plano=False)
     s.add_argument("--cwd")
+    return p
 
-    a = p.parse_args()
+
+def main():
+    configurar_saida()
+    a = montar_parser().parse_args()
     a.func(a)
 
 

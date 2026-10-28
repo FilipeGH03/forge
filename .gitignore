@@ -2,3 +2,9 @@ __pycache__/
 node_modules/
 dist/
 .astro/
+# Tudo da impeccable fica só na máquina do dono (D15, D20)
+site/PRODUCT.md
+site/DESIGN.md
+site/.claude/skills/impeccable/
+.impeccable/
+site/.impeccable/

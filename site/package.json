@@ -1,0 +1,29 @@
+{
+  "name": "forge-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Site de documentação da skill forge",
+  "scripts": {
+    "dev": "astro dev",
+    "dados": "python scripts/extrair.py",
+    "prebuild": "npm run dados",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "links": "node tests/conferir-links.mjs",
+    "astro": "astro"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.5",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/source-serif-4": "^5.3.1",
+    "astro": "^7.4.2",
+    "github-slugger": "^2.0.0",
+    "shiki": "^4.5.0"
+  }
+}
