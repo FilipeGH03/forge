@@ -5,7 +5,7 @@ description: Conduz um projeto dividido em frentes e tocado por agentes, com um 
 
 # forge
 
-Método extraído do Serviço de Avisos (`C:\Projetos\plano-avisos.md`), generalizado: um
+Método extraído de um projeto real (um serviço de avisos tocado em três frentes), generalizado: um
 **documento vivo** é a fonte da verdade, o trabalho anda em **frentes** independentes amarradas por
 **contratos**, cada tarefa é pequena e testável sozinha, e agentes executam enquanto a sessão
 principal integra.
@@ -23,10 +23,11 @@ principal integra.
 | `references/plano-json.md` | nesta skill | Formato do JSON, para editar campos que não têm comando. |
 | `hooks/forge_hook.py` | nesta skill | Hooks globais: estado ao abrir sessão, trava de banco, ID no commit. |
 
-Chame o script sempre assim (abreviado como `forge` daqui em diante):
+`<skill>` é a pasta desta skill — o "Base directory" que aparece quando ela carrega (normalmente
+`~/.claude/skills/forge`). Chame o script sempre assim (abreviado como `forge` daqui em diante):
 
 ```bash
-python "C:/Users/DEV/.claude/skills/forge/scripts/forge.py" <comando> <plano.json> ...
+python "<skill>/scripts/forge.py" <comando> <plano.json> ...
 ```
 
 | Comando | Faz |
@@ -122,7 +123,7 @@ Cadastre com os comandos (ou editando o JSON, ver `references/plano-json.md`) e 
    dá (até 5 por tarefa: executor, 2 revisores, correção se houver bloqueante, testador). O `args`
    já leva o modelo e o esforço de cada papel; o workflow os aplica. Invocar `/forge` já autoriza o
    Workflow; mesmo assim, confirme antes da **primeira** onda da sessão.
-5. Rode o Workflow com `scriptPath: "C:/Users/DEV/.claude/skills/forge/references/workflow-onda.js"`
+5. Rode o Workflow com `scriptPath: "<skill>/references/workflow-onda.js"`
    e `args` = o objeto do `onda.json` (o objeto, não o texto). Se o `scriptPath` for recusado, passe o
    conteúdo do arquivo em `script`.
 
@@ -203,4 +204,4 @@ Ao fim de cada onda e antes de encerrar a sessão:
   fora da regra de banco; num repositório de frente, na branch do plano, recusa `git commit -m` sem
   um ID de tarefa existente no começo da mensagem.
 
-Instalar/remover: `python "C:/Users/DEV/.claude/skills/forge/hooks/instalar.py" [--remover]`.
+Instalar/remover: `python "<skill>/hooks/instalar.py" [--remover]`.
