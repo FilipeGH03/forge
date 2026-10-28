@@ -51,6 +51,9 @@ class TestSkillMdReal(unittest.TestCase):
                            capture_output=True, text=True, encoding="utf-8")
         if r.returncode != 0:
             self.skipTest("branch main indisponível")
+        if not r.stdout.strip():
+            # Na própria main (o site já entrou nela, como no Actions), não há branch de trabalho para conferir.
+            self.skipTest("SKILL.md igual ao da main: nada a conferir fora de uma branch de trabalho")
         linhas = [l for l in r.stdout.splitlines() if l[:1] in "+-" and not l.startswith(("+++", "---"))]
         removidas = [l for l in linhas if l.startswith("-")]
         acrescidas = [l[1:] for l in linhas if l.startswith("+") and l[1:].strip()]
