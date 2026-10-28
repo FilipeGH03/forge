@@ -22,6 +22,18 @@ REGISTRO = Path(os.environ.get("FORGE_REGISTRO") or Path.home() / ".claude" / "f
 FASES = ["requisitos", "aguardando-aprovacao", "aprovado", "em-execucao", "fechado"]
 ESTADOS = {"pendente": "☐", "feito": "✔", "revisar": "⟳"}
 PAPEIS = ["executor", "revisor-contrato", "revisor-padroes", "testador"]
+
+# Modelo e esforço de cada papel por complexidade da tarefa. O plano pode sobrepor qualquer célula em
+# agentes.modelos; o Opus fica só onde errar custa caro (código difícil e furo de contrato).
+COMPLEXIDADES = ["baixa", "media", "alta"]
+MODELOS = ["haiku", "sonnet", "opus"]
+ESFORCOS = ["low", "medium", "high", "xhigh", "max"]
+MODELOS_PADRAO = {
+    "executor":         {"baixa": ("sonnet", "medium"), "media": ("sonnet", "high"),  "alta": ("opus", "high")},
+    "revisor-contrato": {"baixa": ("sonnet", "low"),    "media": ("sonnet", "high"),  "alta": ("opus", "high")},
+    "revisor-padroes":  {"baixa": ("haiku", "medium"),  "media": ("sonnet", "medium"), "alta": ("sonnet", "high")},
+    "testador":         {"baixa": ("haiku", "medium"),  "media": ("sonnet", "medium"), "alta": ("sonnet", "high")},
+}
 # D, Q e R já numeram decisões, dúvidas e requisitos — uma frente com essas letras confundiria os IDs
 FRENTES_RESERVADAS = {"D", "Q", "R"}
 
@@ -160,6 +172,17 @@ def validar(plano):
             problemas.append(f"tarefa {tid}: estado inválido {t.get('estado')!r}")
         if not t.get("como_testar"):
             problemas.append(f"tarefa {tid}: falta 'como_testar' — toda tarefa precisa provar que funciona sozinha")
+        if t.get("complexidade", "media") not in COMPLEXIDADES:
+            problemas.append(f"tarefa {tid}: complexidade inválida {t.get('complexidade')!r} (use {', '.join(COMPLEXIDADES)})")
+    for papel, niveis_ in (plano.get("agentes", {}).get("modelos") or {}).items():
+        if papel not in MODELOS_PADRAO:
+            problemas.append(f"agentes.modelos: papel {papel!r} não existe")
+            continue
+        for nivel, escolha in niveis_.items():
+            if nivel not in COMPLEXIDADES:
+                problemas.append(f"agentes.modelos.{papel}: complexidade {nivel!r} não existe")
+            elif (escolha.get("modelo") not in MODELOS) or (escolha.get("esforco") not in ESFORCOS):
+                problemas.append(f"agentes.modelos.{papel}.{nivel}: modelo em {MODELOS} e esforco em {ESFORCOS}")
     for t in plano.get("tarefas", []):
         for d in t.get("depende", []):
             if d not in ids:
@@ -226,6 +249,14 @@ def tarefa(plano, tid):
         if t["id"] == tid:
             return t
     erro(f"tarefa {tid} não existe")
+
+
+def modelos_efetivos(plano):
+    """{papel: {complexidade: {modelo, esforco}}}: o padrão com as células que o plano sobrepõe."""
+    sobrepostos = plano.get("agentes", {}).get("modelos") or {}
+    return {papel: {nivel: dict({"modelo": modelo, "esforco": esforco}, **sobrepostos.get(papel, {}).get(nivel, {}))
+                    for nivel, (modelo, esforco) in por_nivel.items()}
+            for papel, por_nivel in MODELOS_PADRAO.items()}
 
 
 def decisoes_em_vigor(plano):
@@ -401,13 +432,13 @@ def gerar_md(plano, caminho_json):
     a("## 7. Tarefas\n")
     for f in plano["frentes"]:
         a(f"### Frente {f['id']} · {f['nome']} (`{f['repo']}`)\n")
-        a("| ✔ | # | Tarefa | Como testar | Depende de | Commit |\n|---|---|---|---|---|---|")
+        a("| ✔ | # | Tarefa | Como testar | Depende de | Complexidade | Commit |\n|---|---|---|---|---|---|---|")
         for t in tarefas:
             if t["frente"] != f["id"]:
                 continue
             commit = ", ".join(f"`{s[:8]}`" for s in t.get("commits", [])) or "—"
             a(f"| {ESTADOS[t['estado']]} | {t['id']} | {celula(t['titulo'])} | {celula(t['como_testar'])} | "
-              f"{', '.join(t.get('depende', [])) or '—'} | {commit} |")
+              f"{', '.join(t.get('depende', [])) or '—'} | {t.get('complexidade', 'media')} | {commit} |")
         a("")
     a("`☐` não começada · `✔` feita, testada e commitada · `⟳` feita, mas uma decisão posterior pede revisão.\n")
 
@@ -428,6 +459,13 @@ def gerar_md(plano, caminho_json):
     a("| **Testador** | Independente: confere o *como testar*, escreve o teste que falta e roda. Não corrige código de produção. | só testes |")
     a("")
     a(f"Push ao terminar: **{'sim' if plano['agentes'].get('push') else 'não — só commit local'}**.\n")
+    a("Modelo e esforço de cada papel, pela complexidade da tarefa (coluna da seção 7; `agentes.modelos` no "
+      "JSON sobrepõe o padrão):\n")
+    a("| Papel | " + " | ".join(COMPLEXIDADES) + " |\n|---|" + "---|" * len(COMPLEXIDADES))
+    efetivos = modelos_efetivos(plano)
+    for papel in MODELOS_PADRAO:
+        a(f"| {papel} | " + " | ".join("{modelo} · {esforco}".format(**efetivos[papel][n]) for n in COMPLEXIDADES) + " |")
+    a("")
     if plano["agentes"].get("licoes"):
         a("O que as rodadas anteriores ensinaram:\n")
         for li in plano["agentes"]["licoes"]:
@@ -650,7 +688,11 @@ def montar_onda(caminho, plano, maximo):
             arq = pasta / f"{t['id']}-{papel}.md"
             arq.write_text(montar_briefing(caminho, plano, t, papel), encoding="utf-8", newline="\n")
             briefings[papel.replace("-", "_")] = str(arq.resolve())
-        fila["tarefas"].append({"id": t["id"], "titulo": t["titulo"], "briefings": briefings})
+        nivel_t = t.get("complexidade", "media")
+        modelos = {papel.replace("-", "_"): {"model": escolha[nivel_t]["modelo"], "effort": escolha[nivel_t]["esforco"]}
+                   for papel, escolha in modelos_efetivos(plano).items()}
+        fila["tarefas"].append({"id": t["id"], "titulo": t["titulo"], "complexidade": nivel_t,
+                                "briefings": briefings, "modelos": modelos})
         if t["frente"] not in fila["frentes"]:
             fila["frentes"].append(t["frente"])
         escolhidas.add(t["id"])
@@ -744,9 +786,18 @@ def cmd_tarefa(a):
     tid = proximo_id(a.frente, [t["id"] for t in plano["tarefas"]])
     plano["tarefas"].append({"id": tid, "frente": a.frente, "titulo": a.titulo, "como_testar": a.testar,
                              "depende": a.depende or [], "estado": "pendente", "commits": [],
-                             "rodada": len(plano["rodadas"]) + 1, "notas": a.notas or ""})
+                             "complexidade": a.complexidade, "rodada": len(plano["rodadas"]) + 1,
+                             "notas": a.notas or ""})
     salvar(a.plano, plano)
     print(tid)
+
+
+def cmd_complexidade(a):
+    plano = carregar(a.plano)
+    for tid in a.ids:
+        tarefa(plano, tid)["complexidade"] = a.nivel
+    salvar(a.plano, plano)
+    print(f"{', '.join(a.ids)}: {a.nivel}")
 
 
 def cmd_decisao(a):
@@ -940,6 +991,12 @@ def main():
     s.add_argument("--testar", required=True, help="como provar que a tarefa funciona sozinha")
     s.add_argument("--depende", nargs="*")
     s.add_argument("--notas")
+    s.add_argument("--complexidade", choices=COMPLEXIDADES, default="media",
+                   help="escolhe o modelo e o esforço dos agentes da tarefa (padrão: media)")
+
+    s = comando("complexidade", cmd_complexidade, "reclassifica a complexidade de uma ou mais tarefas")
+    s.add_argument("nivel", choices=COMPLEXIDADES)
+    s.add_argument("ids", nargs="+")
 
     s = comando("decisao", cmd_decisao, "registra a próxima decisão (D<n>)")
     s.add_argument("--assunto", required=True)

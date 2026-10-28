@@ -49,13 +49,16 @@ Markdown. Plano inválido não é gravado.
     {
       "id": "A1", "frente": "A", "titulo": "Parâmetro tipo no GET /avisos",
       "como_testar": "Teste: com tipo=CR só volta CR; tipo inválido dá 400",
-      "depende": [], "estado": "pendente", "commits": [], "rodada": 1, "notas": ""
+      "depende": [], "estado": "pendente", "commits": [], "complexidade": "media", "rodada": 1, "notas": ""
     }
   ],
   "rodadas": [
     { "n": 1, "data": "2026-10-28", "titulo": "Primeira onda", "registro": "Markdown" }
   ],
-  "agentes": { "push": false, "licoes": [] },
+  "agentes": {
+    "push": false, "licoes": [],
+    "modelos": { "testador": { "alta": { "modelo": "opus", "esforco": "high" } } }
+  },
   "pendencias_dono": [ { "texto": "Rodar X contra o banco", "feito": false, "rodada": 1 } ],
   "md_sha": "gerado pelo forge.py — não mexer"
 }
@@ -69,4 +72,8 @@ Regras que o `validar` confere:
 - Tarefa: ID = letra da frente + número; `estado` ∈ pendente, feito, revisar; `como_testar`
   obrigatório; `depende` só com IDs existentes e sem ciclo.
 - Decisão: `revoga`, `afeta` e `contratos` só apontam para o que existe.
+- Tarefa: `complexidade` ∈ baixa, media, alta (ausente vale `media`).
+- `agentes.modelos` é opcional e só sobrepõe as células que mudam do padrão (`MODELOS_PADRAO` no
+  `forge.py`): papel ∈ executor, revisor-contrato, revisor-padroes, testador; `modelo` ∈ haiku,
+  sonnet, opus; `esforco` ∈ low, medium, high, xhigh, max.
 - Contrato: `entre` só com frentes existentes.

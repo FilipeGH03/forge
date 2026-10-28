@@ -72,6 +72,11 @@ const TESTE = {
   required: ['aprovado', 'casos'],
 }
 
+// Modelo e esforço do papel nesta tarefa (vêm do `forge.py onda`, pela complexidade). Sem eles, herda a sessão.
+const opcoes = (t, papel) => {
+  const m = t.modelos && t.modelos[papel]
+  return m ? { model: m.model, effort: m.effort } : {}
+}
 const ler = (caminho) => `Leia o briefing em \`${caminho}\` e siga-o à risca. Ele é a sua tarefa inteira.`
 const anexo = (titulo, valor) => `\n\n## ${titulo}\n\n\`\`\`json\n${JSON.stringify(valor, null, 2)}\n\`\`\``
 
@@ -79,14 +84,14 @@ if (args.fora && args.fora.length) log(`Ficam para a próxima onda (limite de ta
 
 async function rodarTarefa(t) {
   const b = t.briefings
-  const execucao = await agent(ler(b.executor), { label: `executor:${t.id}`, phase: 'Executar', schema: EXECUCAO })
+  const execucao = await agent(ler(b.executor), { label: `executor:${t.id}`, phase: 'Executar', schema: EXECUCAO, ...opcoes(t, 'executor') })
   if (!execucao) return { id: t.id, estado: 'falhou', motivo: 'o executor não voltou' }
   if (execucao.estado !== 'pronto') return { id: t.id, estado: execucao.estado, execucao }
 
   const feito = anexo('Resultado do executor', execucao)
   const revisoes = await parallel([
-    () => agent(ler(b.revisor_contrato) + feito, { label: `rev-contrato:${t.id}`, phase: 'Revisar', schema: REVISAO }),
-    () => agent(ler(b.revisor_padroes) + feito, { label: `rev-padroes:${t.id}`, phase: 'Revisar', schema: REVISAO }),
+    () => agent(ler(b.revisor_contrato) + feito, { label: `rev-contrato:${t.id}`, phase: 'Revisar', schema: REVISAO, ...opcoes(t, 'revisor_contrato') }),
+    () => agent(ler(b.revisor_padroes) + feito, { label: `rev-padroes:${t.id}`, phase: 'Revisar', schema: REVISAO, ...opcoes(t, 'revisor_padroes') }),
   ])
   const [contrato, padroes] = revisoes
   const bloqueantes = revisoes.filter(Boolean).flatMap((r) => r.achados.filter((x) => x.severidade === 'bloqueante'))
@@ -100,13 +105,13 @@ async function rodarTarefa(t) {
         '\n\n## Correção pedida pelos revisores\n\nVocê já fez esta tarefa. Corrija **só** os achados bloqueantes abaixo, ' +
         'em commit novo com o mesmo ID. Se discordar de um achado, não corrija: explique em `notas`.' +
         anexo('Achados bloqueantes', bloqueantes),
-      { label: `correcao:${t.id}`, phase: 'Executar', schema: EXECUCAO },
+      { label: `correcao:${t.id}`, phase: 'Executar', schema: EXECUCAO, ...opcoes(t, 'executor') },
     )
   }
 
   const teste = await agent(
     ler(b.testador) + feito + (correcao ? anexo('Correção depois da revisão', correcao) : ''),
-    { label: `testador:${t.id}`, phase: 'Testar', schema: TESTE },
+    { label: `testador:${t.id}`, phase: 'Testar', schema: TESTE, ...opcoes(t, 'testador') },
   )
 
   const pronto = !!teste && teste.aprovado && !!contrato && !!padroes && (!bloqueantes.length || (correcao && correcao.estado === 'pronto'))

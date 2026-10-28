@@ -34,7 +34,8 @@ python "C:/Users/DEV/.claude/skills/forge/scripts/forge.py" <comando> <plano.jso
 | `novo <slug> --titulo --dono --dir [--branch] [--base]` | Cria JSON + MD e registra o plano |
 | `status` / `drift` | Estado com commits / divergências plano × repositórios |
 | `md` / `validar` | Regenera o MD depois de editar o JSON à mão / só valida |
-| `tarefa --frente --titulo --testar [--depende]` | Nova tarefa com o próximo ID |
+| `tarefa --frente --titulo --testar [--depende] [--complexidade]` | Nova tarefa com o próximo ID |
+| `complexidade <baixa\|media\|alta> <IDs>` | Reclassifica tarefas (muda os modelos dos agentes delas) |
 | `decisao --assunto --texto [--afeta] [--revoga] [--contrato] [--duvida]` | Nova decisão D<n>; tarefas feitas em `--afeta` voltam como ⟳ |
 | `duvida "texto"` / `responder Q<n> "resposta"` | Dúvidas |
 | `marcar <ID> [--commit] [--revisar\|--pendente]` | ✔ achando os commits pelo ID |
@@ -89,6 +90,12 @@ regra, códigos de resposta). Sem contrato fechado, o agente decide sozinho e er
 explícitas. ID = letra da frente + número. Deixe o caminho crítico curto: o que destrava as outras
 frentes vem primeiro.
 
+**Complexidade.** Classifique cada tarefa como `baixa`, `media` (padrão) ou `alta`: é o que escolhe o
+modelo e o esforço de cada agente dela (tabela na seção 9 do plano; `agentes.modelos` no JSON
+sobrepõe o padrão). `baixa`: texto, configuração, mudança mecânica com padrão claro. `alta`: lógica
+nova difícil, concorrência, segurança, contrato delicado, código legado sem teste. O resto é `media`.
+Na dúvida, `media` — errar para baixo custa uma onda refeita, que sai mais caro que o modelo maior.
+
 **Decisões e dúvidas.** Tudo o que foi escolhido vira `decisao`; tudo o que falta decidir vira
 `duvida`. Dúvida em aberto que bloqueia tarefa: diga qual na nota da tarefa.
 
@@ -111,8 +118,9 @@ Cadastre com os comandos (ou editando o JSON, ver `references/plano-json.md`) e 
 2. `forge fase <plano> em-execucao` (na primeira onda).
 3. `forge onda <plano> --max 3 --saida <scratchpad>/onda.json`. Leia o arquivo: ele traz as filas
    (uma por repositório; tarefas da fila em sequência, filas em paralelo) e o que ficou de fora.
-4. Diga ao usuário quais tarefas entram na onda e quantos agentes isso dá (até 5 por tarefa:
-   executor, 2 revisores, correção se houver bloqueante, testador). Invocar `/forge` já autoriza o
+4. Diga ao usuário quais tarefas entram na onda, a complexidade de cada uma e quantos agentes isso
+   dá (até 5 por tarefa: executor, 2 revisores, correção se houver bloqueante, testador). O `args`
+   já leva o modelo e o esforço de cada papel; o workflow os aplica. Invocar `/forge` já autoriza o
    Workflow; mesmo assim, confirme antes da **primeira** onda da sessão.
 5. Rode o Workflow com `scriptPath: "C:/Users/DEV/.claude/skills/forge/references/workflow-onda.js"`
    e `args` = o objeto do `onda.json` (o objeto, não o texto). Se o `scriptPath` for recusado, passe o
