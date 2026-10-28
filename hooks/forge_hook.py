@@ -23,7 +23,10 @@ CLIENTES_BANCO = {"psql", "pgcli", "pg_dump", "pg_dumpall", "pg_restore", "mysql
 SO_LEITURA = {"grep", "rg", "cat", "head", "tail", "less", "echo", "printf", "git", "sed", "awk", "find",
               "ls", "select-string", "get-content", "findstr", "type", "write-output", "write-host"}
 HOSTS_LOCAIS = {"localhost", "127.0.0.1", "::1", "[::1]"}
-BANCOS_PROIBIDOS = {"autenticacao", "producao01", "desenvolvimento"}
+# A regra padrão é só banco local. Quem precisa de mais (uma organização com bancos que ninguém pode abrir,
+# ou só os de um prefixo) aperta por variável de ambiente, sem mexer no código da skill.
+VAR_PREFIXO = "FORGE_BANCO_PREFIXO"
+VAR_PROIBIDOS = "FORGE_BANCOS_PROIBIDOS"
 URL_BANCO = re.compile(r"(?:jdbc:)?(postgres(?:ql)?|mysql|mariadb|sqlserver|mongodb(?:\+srv)?)://"
                        r"(?:[^@/\s'\"]*@)?(\[[^\]]+\]|[^/\s:;?'\"]+)(?::\d+)?/([\w\-]+)", re.I)
 
@@ -81,16 +84,22 @@ def segmentos(comando):
     return [s.strip() for s in re.split(r"\r?\n|;|&&|\|\||\|", comando) if s.strip()]
 
 
+def regra_local():
+    """(prefixo, proibidos) das variáveis de ambiente; vazios quando não configuradas."""
+    prefixo = os.environ.get(VAR_PREFIXO, "").strip().lower()
+    proibidos = {b.strip().lower() for b in os.environ.get(VAR_PROIBIDOS, "").split(",") if b.strip()}
+    return prefixo, proibidos
+
+
 def banco_permitido(host, banco):
-    """(permitido, motivo)."""
-    if banco and banco.lower() in BANCOS_PROIBIDOS:
-        return False, f"o banco '{banco}' é proibido em qualquer caso"
+    """(permitido, motivo). Só banco local (sem host vale como local), apertado pela regra_local()."""
+    prefixo, proibidos = regra_local()
+    if banco and banco.lower() in proibidos:
+        return False, f"o banco '{banco}' está em {VAR_PROIBIDOS}"
     if host and host.lower() not in HOSTS_LOCAIS:
         return False, f"o host '{host}' não é local"
-    if not banco:
-        return False, "não deu para saber qual banco o comando abre"
-    if not banco.lower().startswith("torge_"):
-        return False, f"o banco '{banco}' não começa com torge_"
+    if prefixo and not (banco or "").lower().startswith(prefixo):
+        return False, f"o banco '{banco or '?'}' não começa com {prefixo} ({VAR_PREFIXO})"
     return True, ""
 
 
@@ -223,8 +232,7 @@ def pre_tool(entrada):
     motivo = checar_banco(comando) or checar_commit(comando, entrada.get("cwd") or os.getcwd())
     if motivo:
         if "commit recusado" not in motivo:
-            motivo += (" — regra da organização: só banco local (localhost/127.0.0.1) cujo nome começa com "
-                       "torge_, e nunca autenticacao, producao01 ou desenvolvimento.")
+            motivo += " — o forge só libera banco local (localhost, 127.0.0.1 ou ::1)."
         print(f"[forge] {motivo}", file=sys.stderr)
         sys.exit(2)
 

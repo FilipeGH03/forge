@@ -9,8 +9,8 @@ ordem: 2
 
 Valem em todo projeto forge, para a sessão principal e para os agentes:
 
-- **Banco:** nunca conectar nem executar SQL, exceto banco local (`localhost`/`127.0.0.1`) cujo nome
-  começa com `torge_`; **nunca** `autenticacao`, `producao01` ou `desenvolvimento`. O
+- **Banco:** nunca conectar em banco que não seja local (`localhost`, `127.0.0.1` ou `::1`) nem
+  executar SQL fora dele; a regra da organização, se for mais estrita, vale por cima. O
   [hook](/docs/hooks/) bloqueia os clientes de banco, mas a regra vale além do que ele pega.
 - **O plano só muda pelo `forge.py`** (ou editando o JSON e rodando [`md`](/comandos/#md)), e só pela
   sessão principal.
@@ -31,8 +31,9 @@ agente:
    o ✔.
 5. Se o repositório e o plano discordarem, o repositório tem razão — corrija o plano.
 6. Decisão nova é linha nova. As antigas não são apagadas: são revogadas e viram histórico.
-7. Nada de conectar em banco nem executar SQL, exceto banco local `torge_*`. Migration e DAO se
-   escrevem e se revisam; quem roda é o dono do projeto.
+7. Nada de conectar em banco que não seja local nem executar SQL fora dele (a regra da organização, se
+   for mais estrita, vale por cima). Migration e DAO se escrevem e se revisam; quem roda contra banco de
+   verdade é o dono do projeto.
 8. Restrição escrita no plano envelhece: confira com um teste de um minuto antes de repassar para um
    agente.
 

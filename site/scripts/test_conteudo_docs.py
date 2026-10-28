@@ -316,13 +316,13 @@ class TestFidelidade(Fontes):
         self.assertIn("len(texto) > 6000", hook)
         self.assertIn("6 000 caracteres", self.corpo("hooks"))
 
-    def test_bancos_proibidos_batem_com_o_hook(self):
+    def test_variaveis_do_banco_batem_com_o_hook(self):
         hook = HOOK.read_text(encoding="utf-8")
-        proibidos = re.findall(r'"(\w+)"', re.search(r"BANCOS_PROIBIDOS = \{(.*?)\}", hook).group(1))
-        for slug in ("hooks", "regras"):
-            for banco in proibidos:
-                with self.subTest(slug=slug, banco=banco):
-                    self.assertIn(f"`{banco}`", self.corpo(slug))
+        variaveis = re.findall(r'VAR_\w+ = "(\w+)"', hook)
+        self.assertEqual(len(variaveis), 2)
+        for var in variaveis:
+            with self.subTest(var=var):
+                self.assertIn(f"`{var}`", self.corpo("hooks"))
 
     def test_clientes_citados_existem_no_hook(self):
         hook = HOOK.read_text(encoding="utf-8")

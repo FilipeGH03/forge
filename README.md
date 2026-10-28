@@ -43,8 +43,9 @@ python ~/.claude/skills/forge/hooks/instalar.py
 ```
 
 Os hooks mostram o estado do plano ao abrir uma sessão na pasta do projeto, recusam commit sem ID de
-tarefa nas branches do plano e bloqueiam clientes de banco de dados (`psql`, `mysql`, URLs JDBC...) fora
-da regra em `hooks/forge_hook.py` — hoje, só banco local cujo nome começa com `torge_`. Para tirar:
+tarefa nas branches do plano e bloqueiam acesso a banco de dados fora de `localhost` (`psql`, `mysql`,
+URLs JDBC...). Para apertar a regra, defina `FORGE_BANCO_PREFIXO` (só bancos com esse prefixo) e
+`FORGE_BANCOS_PROIBIDOS` (nomes separados por vírgula, nunca liberados). Para tirar os hooks:
 `python ~/.claude/skills/forge/hooks/instalar.py --remover`.
 
 ## Uso

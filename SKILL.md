@@ -207,9 +207,10 @@ Ao fim de cada onda e antes de encerrar a sessão:
 
 ## Regras que não se negociam
 
-- **Banco:** nunca conectar nem executar SQL, exceto banco local (`localhost`/`127.0.0.1`) cujo nome
-  começa com `torge_`; **nunca** `autenticacao`, `producao01` ou `desenvolvimento`. Vale para
-  agentes. O hook bloqueia os clientes de banco, mas a regra vale além do que ele pega.
+- **Banco:** nunca conectar em banco que não seja local (`localhost`, `127.0.0.1` ou `::1`) nem
+  executar SQL fora dele. Vale para agentes. Se a organização tiver regra mais estrita, ela vale por
+  cima desta. O hook bloqueia os clientes de banco (e aperta com `FORGE_BANCO_PREFIXO` e
+  `FORGE_BANCOS_PROIBIDOS`, se definidas), mas a regra vale além do que ele pega.
 - O plano só muda pelo `forge.py` (ou JSON + `md`), e só pela sessão principal.
 - Contrato não se muda de um lado só. Aprovação do plano não autoriza mudar contrato depois.
 - Nada de lançar agentes antes da aprovação da fase 4.

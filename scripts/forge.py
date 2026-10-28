@@ -73,7 +73,7 @@ REGRAS_PADRAO = [
     "Só a sessão principal altera o plano, e sempre pelo `forge.py`. Agentes reportam; quem integra marca o ✔.",
     "Se o repositório e o plano discordarem, o repositório tem razão — corrija o plano.",
     "Decisão nova é linha nova. As antigas não são apagadas: são revogadas e viram histórico.",
-    "Nada de conectar em banco nem executar SQL (regra da organização), exceto banco local `torge_*`. Migration e DAO se escrevem e se revisam; quem roda é o dono do projeto.",
+    "Nada de conectar em banco que não seja local nem executar SQL fora dele (a regra da organização, se for mais estrita, vale por cima). Migration e DAO se escrevem e se revisam; quem roda contra banco de verdade é o dono do projeto.",
     "Restrição escrita no plano envelhece: confira com um teste de um minuto antes de repassar para um agente.",
 ]
 

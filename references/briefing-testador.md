@@ -40,8 +40,9 @@ Na dúvida, pergunte-se: "isso quebra alguma coisa que o projeto faz ou vai faze
 
 {{proibido}}
 
-- **Nunca** conecte em banco nem rode SQL, exceto banco local `torge_*`. Não ligue flag de teste que
-  sobe schema. Suíte que encosta em banco: rode por classe.
+- **Nunca** conecte em banco que não seja local nem rode SQL fora dele (e siga a regra da organização,
+  se ela for mais estrita). Não ligue flag de teste que sobe schema. Suíte que encosta em banco: rode por
+  classe.
 
 ## O que devolver
 

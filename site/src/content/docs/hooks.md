@@ -36,10 +36,15 @@ Roda antes de cada comando de Bash ou PowerShell e pode recusá-lo.
 ### Banco de dados
 
 Bloqueia os clientes de banco (`psql`, `pg_dump`, `mysql`, `sqlcmd`, `sqlite3`, `mongosh`,
-`redis-cli` e outros) e as URLs de conexão (inclusive JDBC) que estejam fora da regra: só banco
-**local** (`localhost`, `127.0.0.1` ou `::1`) cujo nome começa com `torge_`, e **nunca** os bancos
-`autenticacao`, `producao01` ou `desenvolvimento`. Também bloqueia quando não dá para saber qual banco o
-comando abre.
+`redis-cli` e outros) e as URLs de conexão (inclusive JDBC) que apontem para um banco que não é
+**local** (`localhost`, `127.0.0.1` ou `::1`). Sem host no comando, o banco vale como local.
+
+Para apertar a regra sem mexer na skill, defina no ambiente:
+
+| Variável | Efeito |
+|---|---|
+| `FORGE_BANCO_PREFIXO` | Só libera bancos cujo nome começa com esse prefixo. |
+| `FORGE_BANCOS_PROIBIDOS` | Nomes separados por vírgula que nunca são liberados, nem locais. |
 
 Uma URL citada por um comando só de leitura (`grep`, `cat`, `git`, `echo`…) não é bloqueada. A regra
 vale além do que o hook consegue pegar — ele é uma rede de segurança, não a regra.
