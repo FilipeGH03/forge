@@ -256,12 +256,21 @@
           "obrigatorio": false,
           "recebe_valor": true,
           "padrao": "media",
-          "ajuda": "escolhe o modelo e o esforço dos agentes da tarefa (padrão: media)",
+          "ajuda": "escolhe o modelo e o esforço dos agentes da tarefa e, sem --equipe, quem roda (padrão: media)",
           "valores": [
             "baixa",
             "media",
             "alta"
           ],
+          "multiplo": false
+        },
+        {
+          "nome": "--equipe",
+          "obrigatorio": false,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "quem roda na tarefa: solo, completa ou papéis separados por vírgula (o executor entra sempre); sem ela, vem da complexidade",
+          "valores": null,
           "multiplo": false
         }
       ],
@@ -301,6 +310,35 @@
       "exemplo": {
         "comando": "forge.py complexidade forge-exemplo.json baixa A2",
         "saida": "A2: baixa"
+      }
+    },
+    {
+      "nome": "equipe",
+      "ajuda": "escolhe quem roda numa ou mais tarefas (executor, revisores, testador)",
+      "usa_plano": true,
+      "argumentos": [
+        {
+          "nome": "papeis",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": "solo, completa, padrao (volta a seguir a complexidade) ou papéis separados por vírgula: executor, revisor-contrato, revisor-padroes, testador",
+          "valores": null,
+          "multiplo": false
+        },
+        {
+          "nome": "ids",
+          "obrigatorio": true,
+          "recebe_valor": true,
+          "padrao": null,
+          "ajuda": null,
+          "valores": null,
+          "multiplo": true
+        }
+      ],
+      "exemplo": {
+        "comando": "forge.py equipe forge-exemplo.json executor,testador A2",
+        "saida": "A2: executor, testador"
       }
     },
     {
@@ -568,7 +606,7 @@
       ],
       "exemplo": {
         "comando": "forge.py briefing forge-exemplo.json A2 --papel testador",
-        "saida": "# Testador da tarefa A2 — Exemplo\n\nVocê é o **testador**. Independente do executor: não confie no relatório dele, confira. Você pode\n**escrever e commitar testes**, mas **não corrige código de produção** — defeito achado é reportado.\n\n## Onde\n\n- Repositório `<pasta>/repo`, branch `exemplo` — frente **A · API**.\n- O resultado do executor (e da correção, se houve) vem logo abaixo deste briefing.\n\n**A2 — Teste da rota /saude**\n\n- Como provar que funciona: **o teste roda e passa**\n- Teste da frente: python -m unittest\n\n## Contratos que envolvem esta frente\n\n*(nenhum contrato envolve esta frente)*\n\n## O que fazer\n\n1. Rode os testes que o executor diz ter rodado. Passaram de verdade?\n2. Monte os casos a partir do \"como provar\" e do contrato: o caminho feliz, os limites (vazio, nulo,\n   tamanho máximo, fora do domínio), o erro esperado e o que **não** pode acontecer.\n3. Para cada caso sem teste automatizado, escreva o teste no padrão do repositório e rode.\n4. Commit dos testes com a mensagem **começando por `A2: `** (ex.: `A2: testes de borda`).\n   **Não faça push** — só commit local.\n5. O que não dá para testar aqui (precisa de banco, servidor, tela no navegador, aparelho) vira caso\n   com `resultado: \"nao-executado\"` e o roteiro para o dono executar.\n\n## O que conta como defeito\n\nSó reprove (`aprovado: false`, caso `falhou`, teste commitado falhando) um defeito que acontece com\na **entrada real do projeto**: os arquivos, dados e usos que existem hoje, ou que a tarefa e o\ncontrato dizem que vão existir. Caso de borda **hipotético** — formato que nenhuma fonte real tem,\nentrada que ninguém produz — vai em `notas` como observação, sem teste falhando e sem reprovar.\nNa dúvida, pergunte-se: \"isso quebra alguma coisa que o projeto faz ou vai fazer?\" Se não, é nota.\n\n## Restrições\n\n*(nenhuma além das regras)*\n\n- **Nunca** conecte em banco que não seja local nem rode SQL fora dele (e siga a regra da organização,\n  se ela for mais estrita). Não ligue flag de teste que sobe schema. Suíte que encosta em banco: rode por\n  classe.\n\n## O que devolver\n\n`aprovado` (false se algum caso executado falhou), `casos` (cada um com `caso`, `como` e `resultado`:\n`passou`, `falhou` ou `nao-executado`), `commits` dos testes e `notas` (o defeito, com o passo a passo\npara reproduzir, quando houver). Os casos servem de base para o comentário de QA (`registrar-teste`)."
+        "saida": "# Testador da tarefa A2 — Exemplo\n\nVocê é o **testador**. Independente do executor: não confie no relatório dele, confira. Você pode\n**escrever e commitar testes**, mas **não corrige código de produção** — defeito achado é reportado.\nO que você precisa do plano (a tarefa, o contrato e as restrições) está neste briefing: não abra o plano.\n\n## Onde\n\n- Repositório `<pasta>/repo`, branch `exemplo` — frente **A · API**.\n- A mensagem FCP do executor (e a da correção, se houve) vem logo abaixo deste briefing.\n\n**A2 — Teste da rota /saude**\n\n- Como provar que funciona: **o teste roda e passa**\n- Teste da frente: python -m unittest\n\n## Contratos que envolvem esta frente\n\n*(nenhum contrato envolve esta frente)*\n\n## O que fazer\n\n1. Rode os testes que estão em `tests` na mensagem do executor. Passaram de verdade?\n2. Monte os casos a partir do \"como provar\" e do contrato: o caminho feliz, os limites (vazio, nulo,\n   tamanho máximo, fora do domínio), o erro esperado e o que **não** pode acontecer.\n3. Para cada caso sem teste automatizado, escreva o teste no padrão do repositório e rode.\n4. Commit dos testes com a mensagem **começando por `A2: `** (ex.: `A2: testes de borda`).\n   **Não faça push** — só commit local.\n5. O que não dá para testar aqui (precisa de banco, servidor, tela no navegador, aparelho) vira caso\n   com `result: \"skip\"` e, em `cmd`, o roteiro para o dono executar.\n\n## O que conta como defeito\n\nSó reprove (`status: \"fail\"`, caso com `result: \"fail\"`, teste commitado falhando) um defeito que\nacontece com a **entrada real do projeto**: os arquivos, dados e usos que existem hoje, ou que a tarefa\ne o contrato dizem que vão existir. Caso de borda **hipotético** — formato que nenhuma fonte real tem,\nentrada que ninguém produz — vai em `notes` como observação, sem teste falhando e sem reprovar.\nNa dúvida, pergunte-se: \"isso quebra alguma coisa que o projeto faz ou vai fazer?\" Se não, é nota.\n\n## Restrições\n\n*(nenhuma além das regras)*\n\n- **Nunca** conecte em banco que não seja local nem rode SQL fora dele (e siga a regra da organização,\n  se ela for mais estrita). Não ligue flag de teste que sobe schema. Suíte que encosta em banco: rode por\n  classe.\n\n## O que devolver (FCP)\n\n- `id`: `A2`; `status`: `fail` se algum caso executado falhou, `blocked` se não deu para\n  testar nada aqui (diga por quê em `blockers`), senão `ok`.\n- `commits`: os dos testes.\n- `tests`: um por caso — `case` (o caso em poucas palavras), `cmd` (o comando, ou o roteiro se `skip`)\n  e `result` (`pass`, `fail` ou `skip`). Os casos servem de base para o comentário de QA.\n- `notes`: o defeito com o passo a passo para reproduzir, quando houver; observações curtas."
       }
     },
     {
@@ -597,7 +635,7 @@
       ],
       "exemplo": {
         "comando": "forge.py onda forge-exemplo.json --max 1",
-        "saida": "{\n  \"plano\": \"forge-exemplo.json\",\n  \"filas\": [\n    {\n      \"id\": \"A\",\n      \"repo\": \"<pasta>/repo\",\n      \"tarefas\": [\n        {\n          \"id\": \"A2\",\n          \"titulo\": \"Teste da rota /saude\",\n          \"complexidade\": \"baixa\",\n          \"briefings\": {\n            \"executor\": \"<pasta>/forge-exemplo.briefings/A2-executor.md\",\n            \"revisor_contrato\": \"<pasta>/forge-exemplo.briefings/A2-revisor-contrato.md\",\n            \"revisor_padroes\": \"<pasta>/forge-exemplo.briefings/A2-revisor-padroes.md\",\n            \"testador\": \"<pasta>/forge-exemplo.briefings/A2-testador.md\"\n          },\n          \"modelos\": {\n            \"executor\": {\n              \"model\": \"sonnet\",\n              \"effort\": \"medium\"\n            },\n            \"revisor_contrato\": {\n              \"model\": \"sonnet\",\n              \"effort\": \"low\"\n            },\n            \"revisor_padroes\": {\n              \"model\": \"haiku\",\n              \"effort\": \"medium\"\n            },\n            \"testador\": {\n              \"model\": \"haiku\",\n              \"effort\": \"medium\"\n            }\n          }\n        }\n      ]\n    }\n  ],\n  \"fora\": []\n}"
+        "saida": "{\n  \"plano\": \"forge-exemplo.json\",\n  \"filas\": [\n    {\n      \"id\": \"A\",\n      \"repo\": \"<pasta>/repo\",\n      \"tarefas\": [\n        {\n          \"id\": \"A2\",\n          \"titulo\": \"Teste da rota /saude\",\n          \"complexidade\": \"baixa\",\n          \"equipe\": [\n            \"executor\",\n            \"testador\"\n          ],\n          \"briefings\": {\n            \"executor\": \"<pasta>/forge-exemplo.briefings/A2-executor.md\",\n            \"testador\": \"<pasta>/forge-exemplo.briefings/A2-testador.md\"\n          },\n          \"modelos\": {\n            \"executor\": {\n              \"model\": \"sonnet\",\n              \"effort\": \"medium\"\n            },\n            \"testador\": {\n              \"model\": \"haiku\",\n              \"effort\": \"medium\"\n            }\n          }\n        }\n      ]\n    }\n  ],\n  \"fora\": []\n}"
       }
     },
     {

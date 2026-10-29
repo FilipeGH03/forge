@@ -59,7 +59,7 @@ procura em qualquer outro:
 | 6. Contratos entre as frentes | Cada contrato, com as frentes envolvidas e as decisões que o alteraram. |
 | 7. Tarefas | Por frente: estado, como testar, dependências e commits. |
 | 8. Ordem e dependências | As ondas calculadas a partir das dependências. |
-| 9. Tocar o trabalho com agentes | Os quatro papéis, se os agentes dão push e as lições das rodadas. |
+| 9. Tocar o trabalho com agentes | Os quatro papéis, a equipe e os modelos por complexidade, se os agentes dão push e as lições das rodadas. |
 | 10. Rodadas | O registro de cada onda fechada. |
 | 11. O que fica com o dono | O que só o dono pode fazer. |
 

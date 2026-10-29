@@ -83,12 +83,12 @@ Markdown. Plano inválido não é gravado. Para só conferir, sem gravar nada, h
 | `regras` | As [regras do jogo](/docs/regras/); as padrão vêm preenchidas. | JSON |
 | `frentes` | Repositório, stack, como testar, restrições e, opcionalmente, `branch`/`base` próprios. | JSON |
 | `decisoes` | D1, D2…, com o que afetam, revogam e os contratos que alteram. | [`decisao`](/comandos/#decisao) |
-| `apurado` | Fatos lidos no código, um por área. | JSON |
+| `apurado` | Fatos lidos no código, um por área. `frentes` (opcional) diz a quais frentes o fato interessa: o briefing de uma tarefa leva os da frente dela e os sem `frentes`. | JSON |
 | `duvidas` | Q1, Q2…, a resposta e a decisão em que viraram. | [`duvida`](/comandos/#duvida), [`responder`](/comandos/#responder) |
 | `contratos` | Id, título, frentes envolvidas e o texto em Markdown. | JSON |
-| `tarefas` | As tarefas, com estado, dependências e commits. | [`tarefa`](/comandos/#tarefa), [`marcar`](/comandos/#marcar) |
+| `tarefas` | As tarefas, com estado, dependências, commits, complexidade e, opcionalmente, a `equipe` (quem roda nela). | [`tarefa`](/comandos/#tarefa), [`marcar`](/comandos/#marcar), [`complexidade`](/comandos/#complexidade), [`equipe`](/comandos/#equipe) |
 | `rodadas` | O registro de cada onda fechada. | [`rodada`](/comandos/#rodada) |
-| `agentes` | Se os agentes dão `push` (padrão: não, só commit local) e as lições das rodadas. | JSON, [`rodada --licao`](/comandos/#rodada) |
+| `agentes` | Se os agentes dão `push` (padrão: não, só commit local), as lições das rodadas e, opcionais, `modelos` e `equipes` por complexidade, que sobrepõem o padrão. | JSON, [`rodada --licao`](/comandos/#rodada) |
 | `pendencias_dono` | O que só o dono pode fazer. | [`dono`](/comandos/#dono), [`rodada --dono`](/comandos/#rodada) |
 | `md_sha` | O hash do Markdown gerado, para o [drift](/docs/sincronizacao-e-drift/) achar edição à mão. | o próprio `forge.py` — não mexer |
 
@@ -98,7 +98,9 @@ Markdown. Plano inválido não é gravado. Para só conferir, sem gravar nada, h
 - **Frente:** de 1 a 3 letras maiúsculas, sem D, Q ou R, sem repetir, e com `repo`.
 - **Tarefa:** o ID é a letra da frente seguida de número, sem repetir; a frente existe; o `estado` é
   `pendente`, `feito` ou `revisar`; `como_testar` é obrigatório; `depende` só aponta para IDs que
-  existem, e sem ciclo.
+  existem, e sem ciclo; `complexidade` é `baixa`, `media` ou `alta`; a `equipe`, quando existe, só tem
+  papéis conhecidos e sempre o executor.
+- **Agentes:** cada equipe de `agentes.equipes` segue a mesma regra da equipe da tarefa.
 - **Decisão:** `revoga`, `afeta` e `contratos` só apontam para o que existe.
 - **Contrato:** `entre` só cita frentes que existem.
 

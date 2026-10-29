@@ -46,7 +46,8 @@ O método foi extraído de um projeto real e generalizado em quatro ideias:
 | `forge-<slug>.briefings/` | ao lado do JSON | Os briefings gerados para cada agente da onda. |
 | `scripts/forge.py` | na skill | Todos os comandos sobre o plano — veja a [referência de comandos](/comandos/). |
 | `references/workflow-onda.js` | na skill | O workflow que executa uma onda. |
-| `references/briefing-*.md` | na skill | Os modelos dos briefings dos quatro papéis. |
+| `references/briefing-*.md` | na skill | Os modelos dos briefings dos quatro papéis, cada um com a parte do plano que o papel precisa. |
+| `references/fcp.md` | na skill | O FCP: o formato curto das mensagens entre os agentes. |
 | `references/plano-json.md` | na skill | O formato do JSON, para os campos que não têm comando. |
 | `hooks/forge_hook.py` | na skill | Os hooks globais — veja [Hooks](/docs/hooks/). |
 

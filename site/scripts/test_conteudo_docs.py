@@ -307,9 +307,9 @@ class TestFidelidade(Fontes):
 
     def test_estados_do_executor_batem_com_o_workflow(self):
         wf = (extrair.RAIZ_SKILL / "references" / "workflow-onda.js").read_text(encoding="utf-8")
-        estados = json.loads(re.search(r"estado: \{ type: 'string', enum: (\[.*?\]) \}", wf).group(1).replace("'", '"'))
-        pagina = re.findall(r"(?m)^\| `(pronto|contrato|travou|[a-z]+)` \| ", self.corpo("papeis-dos-agentes"))
-        self.assertEqual(sorted(set(pagina) & {"pronto", "contrato", "travou"}), sorted(estados))
+        estados = json.loads(re.search(r"const EXECUCAO = fcp\((\[.*?\])\)", wf).group(1).replace("'", '"'))
+        pagina = re.findall(r"(?m)^\| `([a-z]+)` \| ", self.corpo("papeis-dos-agentes"))
+        self.assertEqual(sorted(set(pagina) & {"ok", "contract", "blocked"}), sorted(estados))
 
     def test_corte_do_hook_e_6000(self):
         hook = HOOK.read_text(encoding="utf-8")

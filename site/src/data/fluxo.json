@@ -39,7 +39,7 @@
       "id": "fase-5",
       "n": 5,
       "titulo": "Execução em ondas",
-      "resumo": "O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código, dois revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.",
+      "resumo": "O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código e, conforme a equipe que a tarefa merece, por revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.",
       "parada": false
     },
     {

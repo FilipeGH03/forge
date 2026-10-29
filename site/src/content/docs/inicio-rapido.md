@@ -163,7 +163,7 @@ aparecem junto.
 ### Execução
 
 Com o `/forge`, é aqui que o [`onda`](/comandos/#onda) escolhe as tarefas desbloqueadas e cada uma
-passa pelos quatro agentes (veja [Tarefas e ondas](/docs/tarefas-e-ondas/)). No exemplo, quem executa
+passa pelos agentes da equipe dela (veja [Tarefas e ondas](/docs/tarefas-e-ondas/)). No exemplo, quem executa
 é você: entre na branch do plano e faça a A1, com o ID da tarefa no começo da mensagem do commit.
 
 ```bash

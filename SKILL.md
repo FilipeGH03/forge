@@ -19,7 +19,8 @@ principal integra.
 | `forge-<slug>.briefings/` | ao lado do JSON | Briefings gerados para cada agente da onda. |
 | `scripts/forge.py` | nesta skill | Todos os comandos sobre o plano. |
 | `references/workflow-onda.js` | nesta skill | O Workflow que executa uma onda. |
-| `references/briefing-*.md` | nesta skill | Modelos dos briefings dos quatro papéis. |
+| `references/briefing-*.md` | nesta skill | Modelos dos briefings dos quatro papéis, cada um com a parte do plano que o papel precisa. |
+| `references/fcp.md` | nesta skill | FCP: o formato curto das mensagens entre os agentes e para a sessão principal. |
 | `references/plano-json.md` | nesta skill | Formato do JSON, para editar campos que não têm comando. |
 | `hooks/forge_hook.py` | nesta skill | Hooks globais: estado ao abrir sessão, trava de banco, ID no commit. |
 
@@ -35,8 +36,9 @@ python "<skill>/scripts/forge.py" <comando> <plano.json> ...
 | `novo <slug> --titulo --dono --dir [--branch] [--base]` | Cria JSON + MD e registra o plano |
 | `status` / `drift` | Estado com commits / divergências plano × repositórios |
 | `md` / `validar` | Regenera o MD depois de editar o JSON à mão / só valida |
-| `tarefa --frente --titulo --testar [--depende] [--complexidade]` | Nova tarefa com o próximo ID |
-| `complexidade <baixa\|media\|alta> <IDs>` | Reclassifica tarefas (muda os modelos dos agentes delas) |
+| `tarefa --frente --titulo --testar [--depende] [--complexidade] [--equipe]` | Nova tarefa com o próximo ID |
+| `complexidade <baixa\|media\|alta> <IDs>` | Reclassifica tarefas (muda os modelos e a equipe padrão delas) |
+| `equipe <solo\|completa\|padrao\|papel,papel> <IDs>` | Escolhe quem roda nas tarefas (o executor sempre) |
 | `decisao --assunto --texto [--afeta] [--revoga] [--contrato] [--duvida]` | Nova decisão D<n>; tarefas feitas em `--afeta` voltam como ⟳ |
 | `duvida "texto"` / `responder Q<n> "resposta"` | Dúvidas |
 | `marcar <ID> [--commit] [--revisar\|--pendente]` | ✔ achando os commits pelo ID |
@@ -105,6 +107,12 @@ sobrepõe o padrão). `baixa`: texto, configuração, mudança mecânica com pad
 nova difícil, concorrência, segurança, contrato delicado, código legado sem teste. O resto é `media`.
 Na dúvida, `media` — errar para baixo custa uma onda refeita, que sai mais caro que o modelo maior.
 
+**Equipe.** A complexidade também decide **quem roda** na tarefa — não se usa uma bazuca para matar
+uma barata: `baixa` só o executor; `media` executor, revisor de contrato e testador; `alta` os quatro
+(`agentes.equipes` no JSON muda o padrão do plano). Quando a importância destoa da dificuldade — mudança
+simples no fluxo de pagamento, por exemplo —, escolha a equipe na própria tarefa:
+`tarefa ... --equipe completa` ou `forge equipe <solo|completa|padrao|papel,papel> <IDs>`.
+
 **Decisões e dúvidas.** Tudo o que foi escolhido vira `decisao`; tudo o que falta decidir vira
 `duvida`. Dúvida em aberto que bloqueia tarefa: diga qual na nota da tarefa.
 
@@ -124,37 +132,42 @@ Cadastre com os comandos (ou editando o JSON, ver `references/plano-json.md`) e 
 
 ## Fase 5 — Execução em ondas
 
-*O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código, dois revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.*
+*O trabalho anda em ondas: cada tarefa passa por um agente que escreve o código e, conforme a equipe que a tarefa merece, por revisores independentes e um testador; tarefas de repositórios diferentes rodam em paralelo, e as do mesmo repositório, em sequência.*
 
 1. `forge drift` limpo e `forge branches` conferido (árvore suja num repositório da onda: pergunte
    antes de seguir).
 2. `forge fase <plano> em-execucao` (na primeira onda).
 3. `forge onda <plano> --max 3 --saida <scratchpad>/onda.json`. Leia o arquivo: ele traz as filas
    (uma por repositório; tarefas da fila em sequência, filas em paralelo) e o que ficou de fora.
-4. Diga ao usuário quais tarefas entram na onda, a complexidade de cada uma e quantos agentes isso
-   dá (até 5 por tarefa: executor, 2 revisores, correção se houver bloqueante, testador). O `args`
-   já leva o modelo e o esforço de cada papel; o workflow os aplica. Invocar `/forge` já autoriza o
+4. Diga ao usuário quais tarefas entram na onda, a complexidade e a `equipe` de cada uma e quantos
+   agentes isso dá (a equipe, mais uma correção se algum revisor achar bloqueante). O `args` já leva a
+   equipe, o modelo e o esforço de cada papel; o workflow roda só quem tem briefing. Os agentes
+   conversam pelo FCP (`references/fcp.md`), e cada briefing já traz a parte do plano de que o agente
+   precisa — não mande agente ler o plano. Invocar `/forge` já autoriza o
    Workflow; mesmo assim, confirme antes da **primeira** onda da sessão.
 5. Rode o Workflow com `scriptPath: "<skill>/references/workflow-onda.js"`
    e `args` = o objeto do `onda.json` (o objeto, não o texto). Se o `scriptPath` for recusado, passe o
    conteúdo do arquivo em `script`.
 
-Modo enxuto, para tarefa muito pequena ou sem contrato: rode o executor e os revisores pela
-ferramenta Agent na sessão, com os briefings de `forge briefing`, sem Workflow.
+Modo enxuto, para tarefa muito pequena ou sem contrato: rode os papéis da equipe dela pela ferramenta
+Agent na sessão, com os briefings de `forge briefing`, sem Workflow.
 
 ## Fase 6 — Integração (só a sessão principal)
 
 *Só a sessão principal confere o que cada agente devolveu, marca no plano o que ficou pronto e leva ao dono o que voltou com problema, sobretudo contrato que não fecha, que nunca é adaptado em silêncio.*
 
-Para cada tarefa que voltou:
+Cada tarefa volta em FCP (`references/fcp.md`): o `status` da tarefa e a mensagem de cada papel que
+rodou. Para cada uma:
 
-- `pronto` → confira os commits no repositório (`git show`) e rode `forge marcar <ID>`.
-- `revisar` / `travou` / `contrato` → **não marque**. Leve ao usuário o achado concreto. Problema de
-  contrato é o resultado mais valioso: vira `duvida` ou `decisao` (+ `--afeta`), nunca adaptação
-  silenciosa.
-- Achados `importante`/`sugestao` dos revisores e a `generalizacao` do revisor de padrões: resuma
-  para o usuário; o que for aceito vira tarefa nova (`tarefa`) ou decisão.
-- Casos `nao-executado` do testador → `dono --add` com o roteiro.
+- `ok` → confira os commits no repositório (`git show`) e rode `forge marcar <ID>`.
+- `fail` / `blocked` / `contract` → **não marque**. Leve ao usuário o achado concreto (`findings`
+  `block`, `blockers`, testes `fail`). Problema de contrato é o resultado mais valioso: vira `duvida`
+  ou `decisao` (+ `--afeta`), nunca adaptação silenciosa.
+- `findings` `major`/`minor` dos revisores e a `generalization` do revisor de padrões: resuma para o
+  usuário; o que for aceito vira tarefa nova (`tarefa`) ou decisão.
+- `tests` com `result: "skip"` do testador → `dono --add` com o roteiro (que vem no `cmd`).
+- Tarefa que rodou com equipe enxuta e voltou com defeito que um revisor ou o testador pegaria: suba
+  a equipe dela (`equipe`) e das parecidas, e registre a lição (`rodada --licao`).
 
 Feche a onda com `forge rodada --titulo ... --arquivo <registro.md>`: commits por repositório, o que
 os testes cobriram, o que mudou de comportamento, furos em aberto, "SQL a olhar". `--dono` para o que

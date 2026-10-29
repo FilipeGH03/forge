@@ -65,6 +65,7 @@ ROTEIRO = [
     (["tarefa", PLANO, "--frente", "A", "--titulo", "Teste da rota /saude", "--testar", "o teste roda e passa",
       "--depende", "A1"], 0),
     (["complexidade", PLANO, "baixa", "A2"], 0),
+    (["equipe", PLANO, "executor,testador", "A2"], 0),
     (["duvida", PLANO, "A rota /saude precisa de autenticação?"], 0),
     (["responder", PLANO, "Q1", "Não: é usada pelo balanceador, sem login."], 0),
     (["decisao", PLANO, "--assunto", "Autenticação", "--texto", "/saude é pública.", "--duvida", "Q1"], 0),

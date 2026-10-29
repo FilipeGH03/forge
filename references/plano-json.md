@@ -37,7 +37,7 @@ Markdown. Plano inválido não é gravado.
     { "id": "D1", "data": "2026-10-27", "assunto": "Quantos tipos", "texto": "Um tipo só.", "afeta": [], "revoga": null, "contratos": [] }
   ],
   "apurado": [
-    { "area": "avisos — HistoricoController", "texto": "Markdown com fatos, arquivo e linha." }
+    { "area": "avisos — HistoricoController", "texto": "Markdown com fatos, arquivo e linha.", "frentes": ["A"] }
   ],
   "duvidas": [
     { "id": "Q1", "texto": "O contador respeita o filtro?", "resposta": null, "decisao": null }
@@ -49,7 +49,8 @@ Markdown. Plano inválido não é gravado.
     {
       "id": "A1", "frente": "A", "titulo": "Parâmetro tipo no GET /avisos",
       "como_testar": "Teste: com tipo=CR só volta CR; tipo inválido dá 400",
-      "depende": [], "estado": "pendente", "commits": [], "complexidade": "media", "rodada": 1, "notas": ""
+      "depende": [], "estado": "pendente", "commits": [], "complexidade": "media", "rodada": 1, "notas": "",
+      "equipe": ["executor", "testador"]
     }
   ],
   "rodadas": [
@@ -57,7 +58,8 @@ Markdown. Plano inválido não é gravado.
   ],
   "agentes": {
     "push": false, "licoes": [],
-    "modelos": { "testador": { "alta": { "modelo": "opus", "esforco": "high" } } }
+    "modelos": { "testador": { "alta": { "modelo": "opus", "esforco": "high" } } },
+    "equipes": { "media": ["executor", "revisor-padroes", "testador"] }
   },
   "pendencias_dono": [ { "texto": "Rodar X contra o banco", "feito": false, "rodada": 1 } ],
   "md_sha": "gerado pelo forge.py — não mexer"
@@ -77,3 +79,10 @@ Regras que o `validar` confere:
   `forge.py`): papel ∈ executor, revisor-contrato, revisor-padroes, testador; `modelo` ∈ haiku,
   sonnet, opus; `esforco` ∈ low, medium, high, xhigh, max.
 - Contrato: `entre` só com frentes existentes.
+- Equipe (`equipe` da tarefa e cada valor de `agentes.equipes`): lista de papéis (executor,
+  revisor-contrato, revisor-padroes, testador) com o executor sempre. Ambos são opcionais: a tarefa sem
+  `equipe` usa `agentes.equipes[complexidade]`, e sem ele o padrão (`EQUIPES_PADRAO` no `forge.py`:
+  baixa só o executor; media executor, revisor de contrato e testador; alta os quatro). Prefira os
+  comandos `equipe` e `tarefa --equipe` a editar à mão.
+- Apurado: `frentes` é opcional. O briefing de uma tarefa leva os itens de apurado da frente dela e os
+  sem `frentes` — marque a frente quando o fato só interessa a ela, para o briefing não inchar.

@@ -63,6 +63,16 @@ MODELOS_PADRAO = {
     "revisor-padroes":  {"baixa": ("haiku", "medium"),  "media": ("sonnet", "medium"), "alta": ("sonnet", "high")},
     "testador":         {"baixa": ("haiku", "medium"),  "media": ("sonnet", "medium"), "alta": ("sonnet", "high")},
 }
+# Quem roda em cada tarefa, pela complexidade: o executor sempre; revisores e testador só onde valem o custo
+# (somar dois números não pede dois revisores; mexer no fluxo de pagamento pede o time todo). O plano
+# sobrepõe em agentes.equipes e a tarefa em "equipe".
+EQUIPES_PADRAO = {
+    "baixa": ["executor"],
+    "media": ["executor", "revisor-contrato", "testador"],
+    "alta":  ["executor", "revisor-contrato", "revisor-padroes", "testador"],
+}
+EQUIPES_NOMEADAS = {"solo": ["executor"], "completa": list(PAPEIS)}
+SIGLAS = {"executor": "E", "revisor-contrato": "RC", "revisor-padroes": "RP", "testador": "T"}
 # D, Q e R já numeram decisões, dúvidas e requisitos — uma frente com essas letras confundiria os IDs
 FRENTES_RESERVADAS = {"D", "Q", "R"}
 
@@ -203,6 +213,12 @@ def validar(plano):
             problemas.append(f"tarefa {tid}: falta 'como_testar' — toda tarefa precisa provar que funciona sozinha")
         if t.get("complexidade", "media") not in COMPLEXIDADES:
             problemas.append(f"tarefa {tid}: complexidade inválida {t.get('complexidade')!r} (use {', '.join(COMPLEXIDADES)})")
+        if "equipe" in t:
+            problemas += [f"tarefa {tid}: {p}" for p in problemas_equipe(t["equipe"])]
+    for nivel, papeis_ in (plano.get("agentes", {}).get("equipes") or {}).items():
+        if nivel not in COMPLEXIDADES:
+            problemas.append(f"agentes.equipes: complexidade {nivel!r} não existe")
+        problemas += [f"agentes.equipes.{nivel}: {p}" for p in problemas_equipe(papeis_)]
     for papel, niveis_ in (plano.get("agentes", {}).get("modelos") or {}).items():
         if papel not in MODELOS_PADRAO:
             problemas.append(f"agentes.modelos: papel {papel!r} não existe")
@@ -238,6 +254,15 @@ def validar(plano):
             if fid not in frentes:
                 problemas.append(f"contrato {c.get('id')}: frente {fid} não existe")
     return problemas
+
+
+def problemas_equipe(papeis_):
+    if not isinstance(papeis_, list):
+        return [f"equipe deve ser uma lista de papéis ({', '.join(PAPEIS)})"]
+    saida = [f"equipe com papel {p!r}, que não existe" for p in papeis_ if p not in PAPEIS]
+    if "executor" not in papeis_:
+        saida.append("equipe sem executor — ele roda sempre")
+    return saida
 
 
 def niveis(plano):
@@ -286,6 +311,28 @@ def modelos_efetivos(plano):
     return {papel: {nivel: dict({"modelo": modelo, "esforco": esforco}, **sobrepostos.get(papel, {}).get(nivel, {}))
                     for nivel, (modelo, esforco) in por_nivel.items()}
             for papel, por_nivel in MODELOS_PADRAO.items()}
+
+
+def equipe(plano, t):
+    """Papéis que rodam na tarefa, na ordem da onda: o da tarefa, senão o do plano, senão o padrão da complexidade."""
+    nivel = t.get("complexidade", "media")
+    escolhida = t.get("equipe") or (plano.get("agentes", {}).get("equipes") or {}).get(nivel) or EQUIPES_PADRAO[nivel]
+    return [p for p in PAPEIS if p in escolhida]
+
+
+def sigla_equipe(papeis_):
+    return "+".join(SIGLAS[p] for p in papeis_)
+
+
+def ler_equipe(texto):
+    """'solo', 'completa' ou papéis separados por vírgula (o executor entra sempre)."""
+    if texto in EQUIPES_NOMEADAS:
+        return list(EQUIPES_NOMEADAS[texto])
+    papeis_ = ["executor"] + [p.strip() for p in texto.split(",") if p.strip() and p.strip() != "executor"]
+    problemas = problemas_equipe(papeis_)
+    if problemas:
+        erro("; ".join(problemas))
+    return [p for p in PAPEIS if p in papeis_]
 
 
 def decisoes_em_vigor(plano):
@@ -461,15 +508,18 @@ def gerar_md(plano, caminho_json):
     a("## 7. Tarefas\n")
     for f in plano["frentes"]:
         a(f"### Frente {f['id']} · {f['nome']} (`{f['repo']}`)\n")
-        a("| ✔ | # | Tarefa | Como testar | Depende de | Complexidade | Commit |\n|---|---|---|---|---|---|---|")
+        a("| ✔ | # | Tarefa | Como testar | Depende de | Complexidade | Equipe | Commit |\n|---|---|---|---|---|---|---|---|")
         for t in tarefas:
             if t["frente"] != f["id"]:
                 continue
             commit = ", ".join(f"`{s[:8]}`" for s in t.get("commits", [])) or "—"
             a(f"| {ESTADOS[t['estado']]} | {t['id']} | {celula(t['titulo'])} | {celula(t['como_testar'])} | "
-              f"{', '.join(t.get('depende', [])) or '—'} | {t.get('complexidade', 'media')} | {commit} |")
+              f"{', '.join(t.get('depende', [])) or '—'} | {t.get('complexidade', 'media')} | "
+              f"{sigla_equipe(equipe(plano, t))}{'*' if t.get('equipe') else ''} | {commit} |")
         a("")
-    a("`☐` não começada · `✔` feita, testada e commitada · `⟳` feita, mas uma decisão posterior pede revisão.\n")
+    a("`☐` não começada · `✔` feita, testada e commitada · `⟳` feita, mas uma decisão posterior pede revisão. "
+      "Equipe: E executor · RC revisor de contrato · RP revisor de padrões · T testador; `*` quando foi escolhida "
+      "na tarefa (sem `*`, vem da complexidade — seção 9).\n")
 
     a("## 8. Ordem e dependências\n")
     if tarefas:
@@ -480,12 +530,21 @@ def gerar_md(plano, caminho_json):
         a("\nTarefas da mesma onda podem andar em paralelo, desde que estejam em repositórios diferentes.\n")
 
     a("## 9. Tocar o trabalho com agentes\n")
-    a("Cada tarefa passa por quatro papéis, numa onda executada pelo `references/workflow-onda.js` da skill:\n")
+    a("Cada tarefa passa por até quatro papéis, numa onda executada pelo `references/workflow-onda.js` da skill. "
+      "Os agentes conversam pelo FCP (`references/fcp.md`): uma mensagem curta, sempre no mesmo formato.\n")
     a("| Papel | O que faz | Escreve código? |\n|---|---|---|")
     for papel in PAPEIS.values():
         a(f"| **{papel['nome']}** | {papel['faz']} | {papel['escreve_codigo']} |")
     a("")
     a(f"Push ao terminar: **{'sim' if plano['agentes'].get('push') else 'não — só commit local'}**.\n")
+    a("Quem roda em cada tarefa, pela complexidade (`agentes.equipes` no JSON sobrepõe o padrão; a tarefa "
+      "sobrepõe com `equipe`):\n")
+    a("| Complexidade | Equipe |\n|---|---|")
+    equipes = plano["agentes"].get("equipes") or {}
+    for n in COMPLEXIDADES:
+        papeis_ = [p for p in PAPEIS if p in (equipes.get(n) or EQUIPES_PADRAO[n])]
+        a(f"| {n} | {', '.join(PAPEIS[p]['nome'] for p in papeis_)} |")
+    a("")
     a("Modelo e esforço de cada papel, pela complexidade da tarefa (coluna da seção 7; `agentes.modelos` no "
       "JSON sobrepõe o padrão):\n")
     a("| Papel | " + " | ".join(COMPLEXIDADES) + " |\n|---|" + "---|" * len(COMPLEXIDADES))
@@ -649,16 +708,28 @@ def achar_drift(caminho, plano):
 
 # --------------------------------------------------------------------------- briefings e ondas
 
-def lista_md(itens, vazio="*(nenhum)*"):
-    return "\n".join(itens) if itens else vazio
+def lista_md(itens, vazio="*(nenhum)*", sep="\n"):
+    return sep.join(itens) if itens else vazio
+
+
+def juntar_nomes(nomes):
+    return nomes[0] if len(nomes) == 1 else ", ".join(nomes[:-1]) + " e " + nomes[-1]
 
 
 def montar_briefing(caminho, plano, t, papel):
     f = frente(plano, t["frente"])
     modelo = (REFERENCIAS / f"briefing-{papel}.md").read_text(encoding="utf-8")
     deps = t.get("depende", [])
-    contratos = [f"### {c['id']} {c['titulo']}\n\n{c['texto']}" for c in plano["contratos"] if f["id"] in c.get("entre", [])]
+    da_frente = [c for c in plano["contratos"] if f["id"] in c.get("entre", [])]
+    contratos = [f"### {c['id']} {c['titulo']}\n\n{c['texto']}" for c in da_frente]
     decisoes = [f"- **{d['id']}** ({d.get('assunto', '')}): {d['texto']}" for d in decisoes_em_vigor(plano)]
+    # O briefing leva a parte do plano que o agente precisa, para ele não abrir o plano atrás dela:
+    # o apurado da frente (ou sem frente marcada) e onde ficam as frentes do outro lado dos contratos.
+    apurado = [f"### {x['area']}\n\n{x['texto']}" for x in plano["apurado"]
+               if not x.get("frentes") or f["id"] in x["frentes"]]
+    vizinhas = sorted({fid for c in da_frente for fid in c.get("entre", []) if fid != f["id"]})
+    outras = [f"- **{o['id']} · {o['nome']}**: `{o['repo']}`" for o in plano["frentes"] if o["id"] in vizinhas]
+    depois = ["o " + PAPEIS[p]["nome"].lower() for p in equipe(plano, t) if p != "executor"]
     push = plano["agentes"].get("push")
     notas = t.get("notas") or ""
     if t["estado"] == "revisar":
@@ -679,8 +750,14 @@ def montar_briefing(caminho, plano, t, papel):
         "como_testar": t["como_testar"],
         "depende": ", ".join(f"{d} ({tarefa(plano, d)['titulo']})" for d in deps) or "nada",
         "notas": notas,
-        "contratos": lista_md(contratos, "*(nenhum contrato envolve esta frente)*"),
+        "contratos": lista_md(contratos, "*(nenhum contrato envolve esta frente)*", "\n\n"),
         "decisoes": lista_md(decisoes, "*(nenhuma)*"),
+        "apurado": lista_md(apurado, "*(nada apurado para esta frente)*", "\n\n"),
+        "outras_frentes": lista_md(outras, "*(nenhuma — os contratos desta frente não envolvem outra)*"),
+        "depois": (f"Depois de você, {juntar_nomes(depois)} {'vai' if len(depois) == 1 else 'vão'} conferir o que "
+                   "você fez." if depois else
+                   "**Ninguém revisa nem testa depois de você** nesta tarefa: o seu teste é a única prova de "
+                   "que ela funciona."),
         "regras": lista_md([f"- {r}" for r in plano["regras"]]),
         "teste_frente": f.get("como_testar") or "*(não definido — descubra no README/CLAUDE.md e diga no relatório)*",
         "proibido": lista_md([f"- {p}" for p in f.get("proibido", [])], "*(nenhuma além das regras)*"),
@@ -710,16 +787,23 @@ def montar_onda(caminho, plano, maximo):
         if len(escolhidas) >= maximo:
             fora.append(t["id"])
             continue
+        # Só os papéis da equipe da tarefa ganham briefing: o workflow roda quem tem briefing
+        papeis_ = equipe(plano, t)
         briefings = {}
-        for papel in PAPEIS:
+        for papel in papeis_:
             arq = pasta / f"{t['id']}-{papel}.md"
             arq.write_text(montar_briefing(caminho, plano, t, papel), encoding="utf-8", newline="\n")
             briefings[papel.replace("-", "_")] = str(arq.resolve())
+        for papel in PAPEIS:
+            if papel not in papeis_:
+                (pasta / f"{t['id']}-{papel}.md").unlink(missing_ok=True)
         nivel_t = t.get("complexidade", "media")
-        modelos = {papel.replace("-", "_"): {"model": escolha[nivel_t]["modelo"], "effort": escolha[nivel_t]["esforco"]}
-                   for papel, escolha in modelos_efetivos(plano).items()}
+        efetivos = modelos_efetivos(plano)
+        modelos = {papel.replace("-", "_"): {"model": efetivos[papel][nivel_t]["modelo"],
+                                             "effort": efetivos[papel][nivel_t]["esforco"]}
+                   for papel in papeis_}
         fila["tarefas"].append({"id": t["id"], "titulo": t["titulo"], "complexidade": nivel_t,
-                                "briefings": briefings, "modelos": modelos})
+                                "equipe": papeis_, "briefings": briefings, "modelos": modelos})
         if t["frente"] not in fila["frentes"]:
             fila["frentes"].append(t["frente"])
         escolhidas.add(t["id"])
@@ -815,6 +899,8 @@ def cmd_tarefa(a):
                              "depende": a.depende or [], "estado": "pendente", "commits": [],
                              "complexidade": a.complexidade, "rodada": len(plano["rodadas"]) + 1,
                              "notas": a.notas or ""})
+    if a.equipe:
+        plano["tarefas"][-1]["equipe"] = ler_equipe(a.equipe)
     salvar(a.plano, plano)
     print(tid)
 
@@ -825,6 +911,20 @@ def cmd_complexidade(a):
         tarefa(plano, tid)["complexidade"] = a.nivel
     salvar(a.plano, plano)
     print(f"{', '.join(a.ids)}: {a.nivel}")
+
+
+def cmd_equipe(a):
+    plano = carregar(a.plano)
+    for tid in a.ids:
+        t = tarefa(plano, tid)
+        if a.papeis == "padrao":
+            t.pop("equipe", None)
+        else:
+            t["equipe"] = ler_equipe(a.papeis)
+    salvar(a.plano, plano)
+    for tid in a.ids:
+        t = tarefa(plano, tid)
+        print(f"{tid}: {', '.join(equipe(plano, t))}" + ("" if t.get("equipe") else f" (padrão de {t.get('complexidade', 'media')})"))
 
 
 def cmd_decisao(a):
@@ -1019,10 +1119,17 @@ def montar_parser():
     s.add_argument("--depende", nargs="*")
     s.add_argument("--notas")
     s.add_argument("--complexidade", choices=COMPLEXIDADES, default="media",
-                   help="escolhe o modelo e o esforço dos agentes da tarefa (padrão: media)")
+                   help="escolhe o modelo e o esforço dos agentes da tarefa e, sem --equipe, quem roda (padrão: media)")
+    s.add_argument("--equipe", help="quem roda na tarefa: solo, completa ou papéis separados por vírgula "
+                                    "(o executor entra sempre); sem ela, vem da complexidade")
 
     s = comando("complexidade", cmd_complexidade, "reclassifica a complexidade de uma ou mais tarefas")
     s.add_argument("nivel", choices=COMPLEXIDADES)
+    s.add_argument("ids", nargs="+")
+
+    s = comando("equipe", cmd_equipe, "escolhe quem roda numa ou mais tarefas (executor, revisores, testador)")
+    s.add_argument("papeis", help="solo, completa, padrao (volta a seguir a complexidade) ou papéis separados "
+                                  "por vírgula: " + ", ".join(PAPEIS))
     s.add_argument("ids", nargs="+")
 
     s = comando("decisao", cmd_decisao, "registra a próxima decisão (D<n>)")
